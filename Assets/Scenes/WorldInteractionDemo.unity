@@ -2671,7 +2671,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &746329932
 Canvas:
   m_ObjectHideFlags: 0
@@ -10436,6 +10436,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: XRRigDemo
       objectReference: {fileID: 0}
+    - target: {fileID: 1717954561962503725, guid: ecdbf3dc6204e7a46943712ecfb94c12,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: ecdbf3dc6204e7a46943712ecfb94c12,
         type: 3}
       propertyPath: m_RootOrder
@@ -11003,6 +11008,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: LlamaBubbleGun
+      objectReference: {fileID: 0}
+    - target: {fileID: 2266651460309394656, guid: cca5e4e0da45560479c022557d04fa1d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4498450296475097182, guid: cca5e4e0da45560479c022557d04fa1d,
         type: 3}
