@@ -1,0 +1,33 @@
+{
+    "name": "XRControlls",
+    "maps": [
+        {
+            "name": "Main_XIV",
+            "id": "fd25bb07-9848-4953-b445-ad193f1a6177",
+            "actions": [
+                {
+                    "name": "Mouse Delta",
+                    "type": "Value",
+                    "id": "9abcc1ae-5869-4747-baad-09508c6e8ec7",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "55d5f647-cd28-4f49-86dd-b19d341fbd6b",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse Delta",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
