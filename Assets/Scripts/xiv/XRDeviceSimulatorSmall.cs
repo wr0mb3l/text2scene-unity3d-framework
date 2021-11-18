@@ -9,7 +9,7 @@ using UnityEngine.InputSystem.XR;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
-    public class XRDeviceSimulator : MonoBehaviour
+    public class XRDeviceSimulatorSmall : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("The Input System Action used to translate or rotate by a scaled amount along or about the x- and y-axes. Must be a Value Vector2 Control.")]
