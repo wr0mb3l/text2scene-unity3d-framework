@@ -11,6 +11,77 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
     public class XRDeviceSimulatorSmall : MonoBehaviour
     {
+        /// <summary>
+        /// The coordinate space in which to operate.
+        /// </summary>
+        /// <seealso cref="keyboardTranslateSpace"/>
+        public enum Space
+        {
+            /// <summary>
+            /// Applies translations of HMD relative to its own coordinate space, considering its own rotations.
+            /// </summary>
+            Local,
+
+            /// <summary>
+            /// Applies translations of HMD relative to the world coordinate space.
+            /// </summary>
+            World,
+        }
+
+        [SerializeField]
+        [Tooltip("The Input System Action used to translate in the x-axis (left/right) while held. Must be a Value Axis Control.")]
+        InputActionReference m_KeyboardXTranslateAction;
+        /// <summary>
+        /// The Input System Action used to translate in the x-axis (left/right) while held.
+        /// Must be a <see cref="InputActionType.Value"/> <see cref="AxisControl"/>.
+        /// </summary>
+        public InputActionReference keyboardXTranslateAction
+        {
+            get => m_KeyboardXTranslateAction;
+            set
+            {
+                UnsubscribeKeyboardXTranslateAction();
+                m_KeyboardXTranslateAction = value;
+                SubscribeKeyboardXTranslateAction();
+            }
+        }
+
+        [SerializeField]
+        [Tooltip("The Input System Action used to translate in the y-axis (up/down) while held. Must be a Value Axis Control.")]
+        InputActionReference m_KeyboardYTranslateAction;
+        /// <summary>
+        /// The Input System Action used to translate in the y-axis (up/down) while held.
+        /// Must be a <see cref="InputActionType.Value"/> <see cref="AxisControl"/>.
+        /// </summary>
+        public InputActionReference keyboardYTranslateAction
+        {
+            get => m_KeyboardYTranslateAction;
+            set
+            {
+                UnsubscribeKeyboardYTranslateAction();
+                m_KeyboardYTranslateAction = value;
+                SubscribeKeyboardYTranslateAction();
+            }
+        }
+
+        [SerializeField]
+        [Tooltip("The Input System Action used to translate in the z-axis (forward/back) while held. Must be a Value Axis Control.")]
+        InputActionReference m_KeyboardZTranslateAction;
+        /// <summary>
+        /// The Input System Action used to translate in the z-axis (forward/back) while held.
+        /// Must be a <see cref="InputActionType.Value"/> <see cref="AxisControl"/>.
+        /// </summary>
+        public InputActionReference keyboardZTranslateAction
+        {
+            get => m_KeyboardZTranslateAction;
+            set
+            {
+                UnsubscribeKeyboardZTranslateAction();
+                m_KeyboardZTranslateAction = value;
+                SubscribeKeyboardZTranslateAction();
+            }
+        }
+
         [SerializeField]
         [Tooltip("The Input System Action used to translate or rotate by a scaled amount along or about the x- and y-axes. Must be a Value Vector2 Control.")]
         InputActionReference m_MouseDeltaAction;
@@ -31,6 +102,68 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_MouseDeltaAction = value;
                 SubscribeMouseDeltaAction();
             }
+        }
+
+        [SerializeField]
+        [Tooltip("The coordinate space in which keyboard translation should operate.")]
+        Space m_KeyboardTranslateSpace = Space.Local;
+        /// <summary>
+        /// The coordinate space in which keyboard translation should operate.
+        /// </summary>
+        /// <seealso cref="Space"/>
+        /// <seealso cref="mouseTranslateSpace"/>
+        /// <seealso cref="keyboardXTranslateAction"/>
+        /// <seealso cref="keyboardYTranslateAction"/>
+        /// <seealso cref="keyboardZTranslateAction"/>
+        public Space keyboardTranslateSpace
+        {
+            get => m_KeyboardTranslateSpace;
+            set => m_KeyboardTranslateSpace = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Speed of translation in the x-axis (left/right) when triggered by keyboard input.")]
+        float m_KeyboardXTranslateSpeed = 0.2f;
+        /// <summary>
+        /// Speed of translation in the x-axis (left/right) when triggered by keyboard input.
+        /// </summary>
+        /// <seealso cref="keyboardXTranslateAction"/>
+        /// <seealso cref="keyboardYTranslateSpeed"/>
+        /// <seealso cref="keyboardZTranslateSpeed"/>
+        public float keyboardXTranslateSpeed
+        {
+            get => m_KeyboardXTranslateSpeed;
+            set => m_KeyboardXTranslateSpeed = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Speed of translation in the y-axis (up/down) when triggered by keyboard input.")]
+        float m_KeyboardYTranslateSpeed = 0.2f;
+        /// <summary>
+        /// Speed of translation in the y-axis (up/down) when triggered by keyboard input.
+        /// </summary>
+        /// <seealso cref="keyboardYTranslateAction"/>
+        /// <seealso cref="keyboardXTranslateSpeed"/>
+        /// <seealso cref="keyboardZTranslateSpeed"/>
+        public float keyboardYTranslateSpeed
+        {
+            get => m_KeyboardYTranslateSpeed;
+            set => m_KeyboardYTranslateSpeed = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Speed of translation in the z-axis (forward/back) when triggered by keyboard input.")]
+        float m_KeyboardZTranslateSpeed = 0.2f;
+        /// <summary>
+        /// Speed of translation in the z-axis (forward/back) when triggered by keyboard input.
+        /// </summary>
+        /// <seealso cref="keyboardZTranslateAction"/>
+        /// <seealso cref="keyboardXTranslateSpeed"/>
+        /// <seealso cref="keyboardYTranslateSpeed"/>
+        public float keyboardZTranslateSpeed
+        {
+            get => m_KeyboardZTranslateSpeed;
+            set => m_KeyboardZTranslateSpeed = value;
         }
 
         [SerializeField]
@@ -92,6 +225,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_CameraTransform = value;
         }
 
+        float m_KeyboardXTranslateInput;
+        float m_KeyboardYTranslateInput;
+        float m_KeyboardZTranslateInput;
+
         Vector2 m_MouseDeltaInput;
 
         Vector3 m_CenterEyeEuler;
@@ -117,6 +254,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 
             AddDevices();
+
+            SubscribeKeyboardXTranslateAction();
+            SubscribeKeyboardYTranslateAction();
+            SubscribeKeyboardZTranslateAction();
             SubscribeMouseDeltaAction();
         }
 
@@ -124,6 +265,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             RemoveDevices();
 
+            UnsubscribeKeyboardXTranslateAction();
+            UnsubscribeKeyboardYTranslateAction();
+            UnsubscribeKeyboardZTranslateAction();
             UnsubscribeMouseDeltaAction();
         }
 
@@ -143,6 +287,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void ProcessPoseInput()
         {
+            // Determine frame of reference
+            GetAxes(m_KeyboardTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
+            
+            // Keyboard translation
+            Vector3 deltaPosition = Time.deltaTime * (
+                m_KeyboardZTranslateInput * m_KeyboardZTranslateSpeed * forward + 
+                m_KeyboardXTranslateInput * m_KeyboardXTranslateSpeed * right + 
+                m_KeyboardYTranslateInput * m_KeyboardYTranslateSpeed * up);
+            m_HMDState.centerEyePosition += deltaPosition;
+            m_HMDState.devicePosition = m_HMDState.centerEyePosition;
+
             // Mouse rotation
             var scaledMouseDeltaInput = new Vector3(m_MouseDeltaInput.x * m_MouseXRotateSensitivity,
                             m_MouseDeltaInput.y * m_MouseYRotateSensitivity * (m_MouseYRotateInvert ? 1f : -1f),
@@ -154,6 +309,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_CenterEyeEuler += anglesDelta;
             m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
         }
+
 
         /// <summary>
         /// Add simulated XR devices to the Input System.
@@ -178,8 +334,52 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 InputSystem.InputSystem.RemoveDevice(m_HMDDevice);
         }
 
+        static void GetAxes(Space translateSpace, Transform cameraTransform, out Vector3 right, out Vector3 up, out Vector3 forward)
+        {
+            if (cameraTransform == null)
+                throw new ArgumentNullException(nameof(cameraTransform));
+
+            switch (translateSpace)
+            {
+                case Space.Local:
+                    right = cameraTransform.right;
+                    up = cameraTransform.up;
+                    forward = cameraTransform.forward;
+                    break;
+                case Space.World:
+                    right = cameraTransform.right;
+                    up = Vector3.up;
+                    forward = Vector3.Normalize(new Vector3(cameraTransform.forward.x, 0, cameraTransform.forward.z));
+                    break;
+                default:
+                    right = Vector3.right;
+                    up = Vector3.up;
+                    forward = Vector3.forward;
+                    Assert.IsTrue(false, $"Unhandled {nameof(translateSpace)}={translateSpace}.");
+                    return;
+            }
+        }
+
+        void SubscribeKeyboardXTranslateAction() => Subscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
+        void UnsubscribeKeyboardXTranslateAction() => Unsubscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
+
+        void SubscribeKeyboardYTranslateAction() => Subscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
+        void UnsubscribeKeyboardYTranslateAction() => Unsubscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
+
+        void SubscribeKeyboardZTranslateAction() => Subscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
+        void UnsubscribeKeyboardZTranslateAction() => Unsubscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
+
         void SubscribeMouseDeltaAction() => Subscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
         void UnsubscribeMouseDeltaAction() => Unsubscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
+
+        void OnKeyboardXTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = context.ReadValue<float>();
+        void OnKeyboardXTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = 0f;
+
+        void OnKeyboardYTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardYTranslateInput = context.ReadValue<float>();
+        void OnKeyboardYTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardYTranslateInput = 0f;
+
+        void OnKeyboardZTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardZTranslateInput = context.ReadValue<float>();
+        void OnKeyboardZTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardZTranslateInput = 0f;
 
         void OnMouseDeltaPerformed(InputAction.CallbackContext context) => m_MouseDeltaInput = context.ReadValue<Vector2>();
         void OnMouseDeltaCanceled(InputAction.CallbackContext context) => m_MouseDeltaInput = Vector2.zero;

@@ -5172,6 +5172,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: XR Device Simulator
       objectReference: {fileID: 0}
+    - target: {fileID: 6598815579406187037, guid: 9f5a24a380916d14db9775daab4fe333,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9f5a24a380916d14db9775daab4fe333, type: 3}
 --- !u!4 &1441015000 stripped
@@ -6516,8 +6521,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ead7174be2768a4da5c16b4b1d21066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_KeyboardXTranslateAction: {fileID: -1273072440521047205, guid: da2b439d1a2de5c46a4f428f8cf4fe19,
+  m_KeyboardXTranslateAction: {fileID: -7851231112616415848, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
     type: 3}
+  m_KeyboardYTranslateAction: {fileID: 1220100624579579331, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
+    type: 3}
+  m_KeyboardZTranslateAction: {fileID: 56300014635483640, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
+    type: 3}
+  m_MouseDeltaAction: {fileID: -1364572812064628064, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
+    type: 3}
+  m_KeyboardXTranslateSpeed: 1
+  m_KeyboardYTranslateSpeed: 1
+  m_KeyboardZTranslateSpeed: 1
+  m_MouseXRotateSensitivity: 0.1
+  m_MouseYRotateSensitivity: 0.1
+  m_MouseYRotateInvert: 0
+  m_CameraTransform: {fileID: 0}
 --- !u!114 &1806119001
 MonoBehaviour:
   m_ObjectHideFlags: 0
