@@ -36,6 +36,14 @@
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "Grip",
+                    "type": "Button",
+                    "id": "170ab283-0d2a-417b-b7eb-cfae8dc253f7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -148,77 +156,17 @@
                     "action": "Keyboard Y",
                     "isComposite": false,
                     "isPartOfComposite": true
-                }
-            ]
-        },
-        {
-            "name": "Input Controlls",
-            "id": "4e51969b-0eea-418e-ab77-ed7c98ebf801",
-            "actions": [
+                },
                 {
-                    "name": "New action",
-                    "type": "Value",
-                    "id": "cdc2aef8-d9de-4f9b-b46e-7b45d3f35b17",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": ""
-                }
-            ],
-            "bindings": [
-                {
-                    "name": "2D Vector",
-                    "id": "c67cd7cb-0845-4e2f-b373-73a08a53f55a",
-                    "path": "2DVector",
+                    "name": "",
+                    "id": "32873e32-288c-4693-b55c-37eae770255c",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "New action",
-                    "isComposite": true,
+                    "action": "Grip",
+                    "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "f7794190-3230-4ecb-8575-5f65e195a9f3",
-                    "path": "<Keyboard>/w",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "bce0036d-aaa1-4a4b-95a3-2ee69541e7db",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "97c1d72f-7d5b-4c27-b44b-991a2f7bb0e6",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "4ee69dc3-0f6e-4b85-9640-0ada384334e7",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 }
             ]
         }
