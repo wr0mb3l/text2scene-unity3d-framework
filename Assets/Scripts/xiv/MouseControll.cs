@@ -5,16 +5,21 @@ using UnityEngine;
 
 public class MouseControll : MonoBehaviour
 {
+    private CharacterController controller;
     // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        // Add Character controller
+        controller = gameObject.AddComponent<CharacterController>();
     }
 
     public float mouseSensitivity = 1.0f;
     public float moveSpeed = 1.0f;
     public bool invertX = false;
     public bool invertY = true;
+    private float gravityValue = -9.81f;
+
     // Update is called once per frame
     void Update()
     {
@@ -35,7 +40,7 @@ public class MouseControll : MonoBehaviour
 
         transform.RotateAround(transform.position, Vector3.up, movementX);
         transform.RotateAround(transform.position, transform.right, movementY);
-
+        
         //Moving the player with the Keyboard
         Keyboard keyboard = Keyboard.current;
 
@@ -45,6 +50,12 @@ public class MouseControll : MonoBehaviour
         Vector3 forwardVec = new Vector3(transform.forward.x, 0, transform.forward.z);
         forwardVec = Vector3.Normalize(forwardVec);
 
-        transform.position += Time.deltaTime * moveSpeed * (forwardVec * forward + transform.right * horizontal);
+        Vector3 transformPosition = Time.deltaTime * moveSpeed * (forwardVec * forward + transform.right * horizontal);
+
+        // Apply gravity to character
+        transformPosition.y += gravityValue * Time.deltaTime;
+        
+        // Move the character
+        controller.Move(transformPosition);
     }
 }
