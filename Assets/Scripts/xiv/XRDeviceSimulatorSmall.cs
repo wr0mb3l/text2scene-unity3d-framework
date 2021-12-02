@@ -258,6 +258,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         XRSimulatedHMD m_HMDDevice;
         XRSimulatedController m_LeftControllerDevice;
+        private CharacterController controller;
 
         protected virtual void Awake()
         {
@@ -273,6 +274,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 var mainCamera = Camera.main;
                 if (mainCamera != null)
+                    mainCamera.gameObject.AddComponent<CharacterController>();
                     m_CameraTransform = mainCamera.transform;
             }
 
