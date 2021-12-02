@@ -123,6 +123,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
+        [Tooltip("The Input System Action used to control the Trigger control of the manipulated controller device(s). Must be a Button Control.")]
+        InputActionReference m_TriggerAction;
+        /// <summary>
+        /// The Input System Action used to control the Trigger control of the manipulated controller device(s).
+        /// Must be a <see cref="ButtonControl"/>.
+        /// </summary>
+        public InputActionReference triggerAction
+        {
+            get => m_TriggerAction;
+            set
+            {
+                UnsubscribeTriggerAction();
+                m_TriggerAction = value;
+                SubscribeTriggerAction();
+            }
+        }
+
+        [SerializeField]
         [Tooltip("The coordinate space in which keyboard translation should operate.")]
         Space m_KeyboardTranslateSpace = Space.Local;
         /// <summary>
@@ -250,6 +268,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         Vector2 m_MouseDeltaInput;
         
         bool m_GripInput;
+        bool m_TriggerInput;
 
         Vector3 m_CenterEyeEuler;
 
@@ -282,6 +301,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             SubscribeKeyboardYTranslateAction();
             SubscribeKeyboardZTranslateAction();
             SubscribeGripAction();
+            SubscribeTriggerAction();
             SubscribeMouseDeltaAction();
         }
 
@@ -293,6 +313,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             UnsubscribeKeyboardYTranslateAction();
             UnsubscribeKeyboardZTranslateAction();
             UnsubscribeGripAction();
+            UnsubscribeTriggerAction();
             UnsubscribeMouseDeltaAction();
         }
 
@@ -358,8 +379,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             controllerState.grip = m_GripInput ? 1f : 0f;
             controllerState.WithButton(ControllerButton.GripButton, m_GripInput);
-            // controllerState.trigger = m_TriggerInput ? 1f : 0f;
-            // controllerState.WithButton(ControllerButton.TriggerButton, m_TriggerInput);
+            controllerState.trigger = m_TriggerInput ? 1f : 0f;
+            controllerState.WithButton(ControllerButton.TriggerButton, m_TriggerInput);
             // controllerState.WithButton(ControllerButton.PrimaryButton, m_PrimaryButtonInput);
             // controllerState.WithButton(ControllerButton.SecondaryButton, m_SecondaryButtonInput);
             // controllerState.WithButton(ControllerButton.MenuButton, m_MenuInput);
@@ -449,6 +470,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void SubscribeGripAction() => Subscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
         void UnsubscribeGripAction() => Unsubscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
 
+        void SubscribeTriggerAction() => Subscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
+        void UnsubscribeTriggerAction() => Unsubscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
+
         void OnKeyboardXTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = context.ReadValue<float>();
         void OnKeyboardXTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = 0f;
 
@@ -463,6 +487,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnGripPerformed(InputAction.CallbackContext context) => m_GripInput = true;
         void OnGripCanceled(InputAction.CallbackContext context) => m_GripInput = false;
+
+        void OnTriggerPerformed(InputAction.CallbackContext context) => m_TriggerInput = true;
+        void OnTriggerCanceled(InputAction.CallbackContext context) => m_TriggerInput = false;
 
         static void Subscribe(InputActionReference reference, Action<InputAction.CallbackContext> performed = null, Action<InputAction.CallbackContext> canceled = null)
         {

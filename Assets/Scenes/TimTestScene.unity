@@ -396,12 +396,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ead7174be2768a4da5c16b4b1d21066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_KeyboardXTranslateAction: {fileID: -7851231112616415848, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
-    type: 3}
-  m_KeyboardYTranslateAction: {fileID: 1220100624579579331, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
-    type: 3}
-  m_KeyboardZTranslateAction: {fileID: 56300014635483640, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
-    type: 3}
+  m_KeyboardXTranslateAction: {fileID: 0}
+  m_KeyboardYTranslateAction: {fileID: 0}
+  m_KeyboardZTranslateAction: {fileID: 0}
   m_MouseDeltaAction: {fileID: -1364572812064628064, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
     type: 3}
   m_GripAction: {fileID: 2394474414162557516, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
@@ -617,6 +614,7 @@ GameObject:
   m_Component:
   - component: {fileID: 455545196}
   - component: {fileID: 455545195}
+  - component: {fileID: 455545197}
   m_Layer: 0
   m_Name: XR Rig Mouse Keyboard
   m_TagString: Untagged
@@ -658,6 +656,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &455545197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 455545194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18def1f131eaf3540958e919b4ee555d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mouseSensitivity: 1
+  moveSpeed: 3
+  invertX: 0
+  invertY: 1
+  m_CameraTransform: {fileID: 0}
 --- !u!1001 &541144708
 PrefabInstance:
   m_ObjectHideFlags: 0
