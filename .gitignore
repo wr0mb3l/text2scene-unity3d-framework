@@ -56,3 +56,8 @@ Thumbs.db.meta
 
 # MacOS
 *.DS_Store
+
+Assets/Plugins/GitHub
+Assets/Plugins/GitHub.meta
+Assets/Plugins/WindowsCredentialManagement
+Assets/Plugins/WindowsCredentialManagement.meta

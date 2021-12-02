@@ -19,27 +19,39 @@ public class MouseControll : MonoBehaviour
     public bool invertX = false;
     public bool invertY = true;
     private float gravityValue = -9.81f;
+    public Transform m_CameraTransform;
+
+    protected virtual void OnEnable()
+    {
+        // Find the Camera if necessary
+        if (m_CameraTransform == null)
+        {
+            var mainCamera = Camera.main;
+            if (mainCamera != null)
+                m_CameraTransform = mainCamera.transform;
+        }
+    }
 
     // Update is called once per frame
     void Update()
     {
         //Moving the camera rotation with the Mouse delta
-        Vector3 mousePos = Mouse.current.delta.ReadValue();
-        float movementX = mousePos.x;
-        float movementY = mousePos.y;
-        movementX /= Screen.height;
-        movementY /= Screen.width;
-        movementX *= mouseSensitivity;
-        movementY *= mouseSensitivity;
-        if(invertX) {
-            movementX = -movementX;
-        }
-        if(invertY) {
-            movementY = -movementY;
-        }
+        // Vector3 mousePos = Mouse.current.delta.ReadValue();
+        // float movementX = mousePos.x;
+        // float movementY = mousePos.y;
+        // movementX /= Screen.height;
+        // movementY /= Screen.width;
+        // movementX *= mouseSensitivity;
+        // movementY *= mouseSensitivity;
+        // if(invertX) {
+        //     movementX = -movementX;
+        // }
+        // if(invertY) {
+        //     movementY = -movementY;
+        // }
 
-        transform.RotateAround(transform.position, Vector3.up, movementX);
-        transform.RotateAround(transform.position, transform.right, movementY);
+        // transform.RotateAround(transform.position, Vector3.up, movementX);
+        // transform.RotateAround(transform.position, transform.right, movementY);
         
         //Moving the player with the Keyboard
         Keyboard keyboard = Keyboard.current;
@@ -47,10 +59,10 @@ public class MouseControll : MonoBehaviour
         float forward = keyboard.wKey.ReadValue() - keyboard.sKey.ReadValue();
         float horizontal = keyboard.dKey.ReadValue() - keyboard.aKey.ReadValue();
         //forward vector with removed up down angle (y)
-        Vector3 forwardVec = new Vector3(transform.forward.x, 0, transform.forward.z);
+        Vector3 forwardVec = new Vector3(m_CameraTransform.forward.x, 0, m_CameraTransform.forward.z);
         forwardVec = Vector3.Normalize(forwardVec);
 
-        Vector3 transformPosition = Time.deltaTime * moveSpeed * (forwardVec * forward + transform.right * horizontal);
+        Vector3 transformPosition = Time.deltaTime * moveSpeed * (forwardVec * forward + m_CameraTransform.right * horizontal);
 
         // Apply gravity to character
         transformPosition.y += gravityValue * Time.deltaTime;

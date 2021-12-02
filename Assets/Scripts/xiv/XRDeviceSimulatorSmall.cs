@@ -105,6 +105,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
+        [Tooltip("The Input System Action used to control the Grip control of the manipulated controller device(s). Must be a Button Control.")]
+        InputActionReference m_GripAction;
+        /// <summary>
+        /// The Input System Action used to control the Grip control of the manipulated controller device(s).
+        /// Must be a <see cref="ButtonControl"/>.
+        /// </summary>
+        public InputActionReference gripAction
+        {
+            get => m_GripAction;
+            set
+            {
+                UnsubscribeGripAction();
+                m_GripAction = value;
+                SubscribeGripAction();
+            }
+        }
+
+        [SerializeField]
         [Tooltip("The coordinate space in which keyboard translation should operate.")]
         Space m_KeyboardTranslateSpace = Space.Local;
         /// <summary>
@@ -230,16 +248,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         float m_KeyboardZTranslateInput;
 
         Vector2 m_MouseDeltaInput;
+        
+        bool m_GripInput;
 
         Vector3 m_CenterEyeEuler;
 
         XRSimulatedHMDState m_HMDState;
+        XRSimulatedControllerState m_LeftControllerState;
 
         XRSimulatedHMD m_HMDDevice;
+        XRSimulatedController m_LeftControllerDevice;
 
         protected virtual void Awake()
         {
             m_HMDState.Reset();
+            m_LeftControllerState.Reset();
             Cursor.lockState = CursorLockMode.Locked;
         }
 
@@ -258,6 +281,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             SubscribeKeyboardXTranslateAction();
             SubscribeKeyboardYTranslateAction();
             SubscribeKeyboardZTranslateAction();
+            SubscribeGripAction();
             SubscribeMouseDeltaAction();
         }
 
@@ -268,16 +292,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             UnsubscribeKeyboardXTranslateAction();
             UnsubscribeKeyboardYTranslateAction();
             UnsubscribeKeyboardZTranslateAction();
+            UnsubscribeGripAction();
             UnsubscribeMouseDeltaAction();
         }
 
         protected virtual void Update()
         {
             ProcessPoseInput();
+            ProcessControlInput();
 
             if (m_HMDDevice != null)
             {
                 InputState.Change(m_HMDDevice, m_HMDState);
+            }
+            if (m_LeftControllerDevice != null)
+            {
+                InputState.Change(m_LeftControllerDevice, m_LeftControllerState);
             }
         }
 
@@ -289,11 +319,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             // Determine frame of reference
             GetAxes(m_KeyboardTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
-            
+
             // Keyboard translation
             Vector3 deltaPosition = Time.deltaTime * (
-                m_KeyboardZTranslateInput * m_KeyboardZTranslateSpeed * forward + 
-                m_KeyboardXTranslateInput * m_KeyboardXTranslateSpeed * right + 
+                m_KeyboardZTranslateInput * m_KeyboardZTranslateSpeed * forward +
+                m_KeyboardXTranslateInput * m_KeyboardXTranslateSpeed * right +
                 m_KeyboardYTranslateInput * m_KeyboardYTranslateSpeed * up);
             m_HMDState.centerEyePosition += deltaPosition;
             m_HMDState.devicePosition = m_HMDState.centerEyePosition;
@@ -310,6 +340,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
         }
 
+        /// <summary>
+        /// Process input from the user and update the state of manipulated controller device(s)
+        /// related to input controls.
+        /// </summary>
+        protected virtual void ProcessControlInput()
+        {
+            ProcessButtonControlInput(ref m_LeftControllerState);
+        }
+
+        /// <summary>
+        /// Process input from the user and update the state of manipulated controller device(s)
+        /// related to button input controls.
+        /// </summary>
+        /// <param name="controllerState">The controller state that will be processed.</param>
+        protected virtual void ProcessButtonControlInput(ref XRSimulatedControllerState controllerState)
+        {
+            controllerState.grip = m_GripInput ? 1f : 0f;
+            controllerState.WithButton(ControllerButton.GripButton, m_GripInput);
+            // controllerState.trigger = m_TriggerInput ? 1f : 0f;
+            // controllerState.WithButton(ControllerButton.TriggerButton, m_TriggerInput);
+            // controllerState.WithButton(ControllerButton.PrimaryButton, m_PrimaryButtonInput);
+            // controllerState.WithButton(ControllerButton.SecondaryButton, m_SecondaryButtonInput);
+            // controllerState.WithButton(ControllerButton.MenuButton, m_MenuInput);
+            // controllerState.WithButton(ControllerButton.Primary2DAxisClick, m_Primary2DAxisClickInput);
+            // controllerState.WithButton(ControllerButton.Secondary2DAxisClick, m_Secondary2DAxisClickInput);
+            // controllerState.WithButton(ControllerButton.Primary2DAxisTouch, m_Primary2DAxisTouchInput);
+            // controllerState.WithButton(ControllerButton.Secondary2DAxisTouch, m_Secondary2DAxisTouchInput);
+            // controllerState.WithButton(ControllerButton.PrimaryTouch, m_PrimaryTouchInput);
+            // controllerState.WithButton(ControllerButton.SecondaryTouch, m_SecondaryTouchInput);
+        }
+
 
         /// <summary>
         /// Add simulated XR devices to the Input System.
@@ -322,6 +383,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 Debug.LogError($"Failed to create {nameof(XRSimulatedHMD)}.");
             }
+
+            m_LeftControllerDevice = InputSystem.InputSystem.AddDevice<XRSimulatedController>($"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.LeftHand}");
+            if (m_LeftControllerDevice != null)
+            {
+                InputSystem.InputSystem.SetDeviceUsage(m_LeftControllerDevice, InputSystem.CommonUsages.LeftHand);
+            }
+            else
+            {
+                Debug.LogError($"Failed to create {nameof(XRSimulatedController)} for {InputSystem.CommonUsages.LeftHand}.", this);
+            }
         }
 
         /// <summary>
@@ -332,6 +403,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             if (m_HMDDevice != null && m_HMDDevice.added)
                 InputSystem.InputSystem.RemoveDevice(m_HMDDevice);
+
+            if (m_LeftControllerDevice != null && m_LeftControllerDevice.added)
+                InputSystem.InputSystem.RemoveDevice(m_LeftControllerDevice);
         }
 
         static void GetAxes(Space translateSpace, Transform cameraTransform, out Vector3 right, out Vector3 up, out Vector3 forward)
@@ -372,6 +446,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void SubscribeMouseDeltaAction() => Subscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
         void UnsubscribeMouseDeltaAction() => Unsubscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
 
+        void SubscribeGripAction() => Subscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
+        void UnsubscribeGripAction() => Unsubscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
+
         void OnKeyboardXTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = context.ReadValue<float>();
         void OnKeyboardXTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = 0f;
 
@@ -383,6 +460,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnMouseDeltaPerformed(InputAction.CallbackContext context) => m_MouseDeltaInput = context.ReadValue<Vector2>();
         void OnMouseDeltaCanceled(InputAction.CallbackContext context) => m_MouseDeltaInput = Vector2.zero;
+
+        void OnGripPerformed(InputAction.CallbackContext context) => m_GripInput = true;
+        void OnGripCanceled(InputAction.CallbackContext context) => m_GripInput = false;
 
         static void Subscribe(InputActionReference reference, Action<InputAction.CallbackContext> performed = null, Action<InputAction.CallbackContext> canceled = null)
         {
