@@ -22,6 +22,8 @@ public class ActionBasedControllerManager : MonoBehaviour
         Select,
         Teleport,
         Interact,
+        Edit,
+        Radial,
     }
 
     [Serializable]
@@ -128,6 +130,18 @@ public class ActionBasedControllerManager : MonoBehaviour
         set => m_TeleportControllerGameObject = value;
     }
 
+    [SerializeField, FormerlySerializedAs("m_TeleportControllerGO")]
+    [Tooltip("The Edit controller GameObject, used for changing default settings on its components during state transitions.")]
+    GameObject m_EditControllerGameObject;
+    /// <summary>
+    /// The Edit controller <see cref="GameObject"/>, used for changing default settings on its components during state transitions.
+    /// </summary>
+    public GameObject EditControllerGameObject
+    {
+        get => m_EditControllerGameObject;
+        set => m_EditControllerGameObject = value;
+    }
+
     [Space]
     [Header("Controller Actions") ]
 
@@ -154,6 +168,42 @@ public class ActionBasedControllerManager : MonoBehaviour
     {
         get => m_TeleportModeCancel;
         set => m_TeleportModeCancel = value;
+    }
+
+    [SerializeField]
+    [Tooltip("The reference to the action of activating the edit mode for this controller.")]
+    InputActionReference m_EditModeActivate;
+    /// <summary>
+    /// The reference to the action of activating the edit mode for this controller."
+    /// </summary>
+    public InputActionReference editModeActivate
+    {
+        get => m_EditModeActivate;
+        set => m_EditModeActivate = value;
+    }
+
+    [SerializeField]
+    [Tooltip("The reference to the action of canceling the edit mode for this controller.")]
+    InputActionReference m_EditModeCancel;
+    /// <summary>
+    /// The reference to the action of canceling the teleport mode for this controller."
+    /// </summary>
+    public InputActionReference editModeCancel
+    {
+        get => m_EditModeCancel;
+        set => m_EditModeCancel = value;
+    }
+
+    [SerializeField]
+    [Tooltip("The reference to the action of canceling the edit mode for this controller.")]
+    InputActionReference m_RadialMenuAxis;
+    /// <summary>
+    /// The reference to the action of choosing options in the Radial menu."
+    /// </summary>
+    public InputActionReference radialMenuAxis
+    {
+        get => m_RadialMenuAxis;
+        set => m_RadialMenuAxis = value;
     }
 
     // Character movement actions
@@ -207,7 +257,7 @@ public class ActionBasedControllerManager : MonoBehaviour
     }
 
     [Space]
-    [Header("Default States") ]
+    [Header("States") ]
 
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
     [SerializeField]
@@ -233,10 +283,26 @@ public class ActionBasedControllerManager : MonoBehaviour
     /// (Read Only) The default Interact state.
     /// </summary>
     public ControllerState interactState => m_InteractState;
+
+    [SerializeField]
+    [Tooltip("The Edit state and events for the controller.")]
+    ControllerState m_EditState = new ControllerState(StateId.Edit);
+    /// <summary>
+    /// (Read Only) The Edit state.
+    /// </summary>
+    public ControllerState editState => m_EditState;
+
+    [SerializeField]
+    [Tooltip("The Radial state and events for the controller.")]
+    ControllerState m_RadialState = new ControllerState(StateId.Radial);
+    /// <summary>
+    /// (Read Only) The Radial Menu state.
+    /// </summary>
+    public ControllerState radialState => m_RadialState;
 #pragma warning restore IDE0044
 
     // The list to store and run the default states
-    readonly List<ControllerState> m_DefaultStates = new List<ControllerState>();
+    readonly List<ControllerState> m_States = new List<ControllerState>();
 
     // Components of the controller to switch on and off for different states
     XRBaseController m_BaseController;
@@ -247,10 +313,15 @@ public class ActionBasedControllerManager : MonoBehaviour
     XRBaseInteractor m_TeleportInteractor;
     XRInteractorLineVisual m_TeleportLineVisual;
 
+    XRBaseController m_EditController;
+    XRRayInteractor m_EditInteractor;
+    XRInteractorLineVisual m_EditLineVisual;
+
     protected void OnEnable()
     {
         FindBaseControllerComponents();
         FindTeleportControllerComponents();
+        FindEditControllerComponents();
 
         // Add default state events.
         m_SelectState.onEnter.AddListener(OnEnterSelectState);
@@ -264,6 +335,14 @@ public class ActionBasedControllerManager : MonoBehaviour
         m_InteractState.onEnter.AddListener(OnEnterInteractState);
         m_InteractState.onUpdate.AddListener(OnUpdateInteractState);
         m_InteractState.onExit.AddListener(OnExitInteractState);
+
+        m_EditState.onEnter.AddListener(OnEnterEditState);
+        m_EditState.onUpdate.AddListener(OnUpdateEditState);
+        m_EditState.onExit.AddListener(OnExitEditState);
+
+        m_RadialState.onEnter.AddListener(OnEnterRadialState);
+        m_RadialState.onUpdate.AddListener(OnUpdateRadialState);
+        m_RadialState.onExit.AddListener(OnExitRadialState);
     }
 
     protected void OnDisable()
@@ -280,15 +359,25 @@ public class ActionBasedControllerManager : MonoBehaviour
         m_InteractState.onEnter.RemoveListener(OnEnterInteractState);
         m_InteractState.onUpdate.RemoveListener(OnUpdateInteractState);
         m_InteractState.onExit.RemoveListener(OnExitInteractState);
+
+        m_EditState.onEnter.RemoveListener(OnEnterEditState);
+        m_EditState.onUpdate.RemoveListener(OnUpdateEditState);
+        m_EditState.onExit.RemoveListener(OnExitEditState);
+
+        m_RadialState.onEnter.RemoveListener(OnEnterRadialState);
+        m_RadialState.onUpdate.RemoveListener(OnUpdateRadialState);
+        m_RadialState.onExit.RemoveListener(OnExitRadialState);
     }
 
     // Start is called before the first frame update
     protected void Start()
     {
         // Add states to the list
-        m_DefaultStates.Add(m_SelectState);
-        m_DefaultStates.Add(m_TeleportState);
-        m_DefaultStates.Add(m_InteractState);
+        m_States.Add(m_SelectState);
+        m_States.Add(m_TeleportState);
+        m_States.Add(m_InteractState);
+        m_States.Add(m_EditState);
+        m_States.Add(m_RadialState);
 
         // Initialize to start in m_SelectState
         TransitionState(null, m_SelectState);
@@ -297,7 +386,7 @@ public class ActionBasedControllerManager : MonoBehaviour
     // Update is called once per frame
     protected void Update()
     {
-        foreach (var state in m_DefaultStates)
+        foreach (var state in m_States)
         {
             if (state.enabled)
             {
@@ -383,6 +472,36 @@ public class ActionBasedControllerManager : MonoBehaviour
         }
     }
 
+    void FindEditControllerComponents()
+    {
+        if (m_EditControllerGameObject == null)
+        {
+            Debug.LogWarning("Missing reference to the Edit Controller GameObject.", this);
+            return;
+        }
+
+        if (m_EditController == null)
+        {
+            m_EditController = m_EditControllerGameObject.GetComponent<XRBaseController>();
+            if (m_EditController == null)
+                Debug.LogWarning($"Cannot find {nameof(XRBaseController)} component on the Edit Controller GameObject.", this);
+        }
+
+        if (m_EditLineVisual == null)
+        {
+            m_EditLineVisual = m_EditControllerGameObject.GetComponent<XRInteractorLineVisual>();
+            if (m_EditLineVisual == null)
+                Debug.LogWarning($"Cannot find {nameof(XRInteractorLineVisual)} component on the Edit Controller GameObject.", this);
+        }
+
+        if (m_EditInteractor == null)
+        {
+            m_EditInteractor = m_EditControllerGameObject.GetComponent<XRRayInteractor>();
+            if (m_EditInteractor == null)
+                Debug.LogWarning($"Cannot find {nameof(XRRayInteractor)} component on the Edit Controller GameObject.", this);
+        }
+    }
+
     /// <summary>
     /// Find and configure the components on the base controller.
     /// </summary>
@@ -419,15 +538,35 @@ public class ActionBasedControllerManager : MonoBehaviour
             m_TeleportInteractor.enabled = enable;
     }
 
+    /// <summary>
+    /// Find and configure the components on the edit controller.
+    /// </summary>
+    /// <param name="enable"> Set it true to enable the edit controller, false to disable it. </param>
+    void SetEditController(bool enable)
+    {
+        FindEditControllerComponents();
+
+        if (m_EditLineVisual != null)
+            m_EditLineVisual.enabled = enable;
+
+        if (m_EditController != null)
+            m_EditController.enableInputActions = enable;
+
+        if (m_EditInteractor != null)
+            m_EditInteractor.enabled = enable;
+    }
+
     void OnEnterSelectState(StateId previousStateId)
     {
         // Change controller and enable actions depending on the previous state
         switch (previousStateId)
         {
             case StateId.None: 
-                // Enable transitions to Teleport state 
+                // Enable transitions to Teleport, Edit state 
                 EnableAction(m_TeleportModeActivate);
                 EnableAction(m_TeleportModeCancel);
+                EnableAction(m_EditModeActivate);
+                EnableAction(m_EditModeCancel);
 
                 // Enable turn and move actions
                 EnableAction(m_Turn);
@@ -441,11 +580,18 @@ public class ActionBasedControllerManager : MonoBehaviour
             case StateId.Teleport:
                 EnableAction(m_Turn);
                 EnableAction(m_Move);
+                EnableAction(m_EditModeActivate);
                 SetBaseController(true);
                 break;
             case StateId.Interact:
                 EnableAction(m_Turn);
                 EnableAction(m_Move);
+                break;
+            case StateId.Edit:
+                EnableAction(m_Turn);
+                EnableAction(m_Move);
+                EnableAction(m_TeleportModeActivate);
+                SetBaseController(true);
                 break;
             default:
                 Debug.Assert(false, $"Unhandled case when entering Select from {previousStateId}.");
@@ -465,11 +611,18 @@ public class ActionBasedControllerManager : MonoBehaviour
             case StateId.Teleport:
                 DisableAction(m_Turn);
                 DisableAction(m_Move);
+                DisableAction(m_EditModeActivate);
                 SetBaseController(false);
                 break;
             case StateId.Interact:
                 DisableAction(m_Turn);
                 DisableAction(m_Move);
+                break;
+            case StateId.Edit:
+                DisableAction(m_Turn);
+                DisableAction(m_Move);
+                DisableAction(m_TeleportModeActivate);
+                SetBaseController(false);
                 break;
             default:
                 Debug.Assert(false, $"Unhandled case when exiting Select to {nextStateId}.");
@@ -495,6 +648,54 @@ public class ActionBasedControllerManager : MonoBehaviour
         DisableAction(m_RotateAnchor);
     }
 
+    void OnEnterEditState(StateId previousStateId)
+    {
+        switch (previousStateId)
+        {
+            case StateId.Select:
+                SetEditController(true);
+                break;
+            case StateId.Radial:
+                break;
+            default:
+                Debug.Assert(false, $"Unhandled case when entering Edit from {previousStateId}.");
+                break;
+        }
+    }
+
+    void OnExitEditState(StateId nextStateId)
+    {
+        switch (nextStateId)
+        {
+            case StateId.Radial:
+                break;
+            case StateId.Select:
+                SetEditController(false);
+                break;
+            default:
+                Debug.Assert(false, $"Unhandled case when exiting Edit to {nextStateId}.");
+                break;
+        }
+    }
+
+    void OnEnterRadialState(StateId previousStateId)
+    {
+        EnableAction(m_RadialMenuAxis);
+
+        var canvas = m_EditController.GetComponentInChildren<Canvas>();
+
+        canvas.enabled = true;
+    }
+
+    void OnExitRadialState(StateId nextStateId)
+    {
+        DisableAction(m_RadialMenuAxis);
+
+        var canvas = m_EditController.GetComponentInChildren<Canvas>();
+
+        canvas.enabled = false;
+    }
+
     /// <summary>
     /// This method is automatically called each frame to handle initiating transitions out of the Select state.
     /// </summary>
@@ -510,6 +711,19 @@ public class ActionBasedControllerManager : MonoBehaviour
         if (triggerTeleportMode && !cancelTeleport)
         {
             TransitionState(m_SelectState, m_TeleportState);
+            return;
+        }
+
+        // Transition from Select state to Edit state when the user triggers the "Teleport Mode Activate" action but not the "Cancel Teleport" action
+        var editModeAction = GetInputAction(m_EditModeActivate);
+        var cancelEditModeAction = GetInputAction(m_EditModeCancel);
+
+        var triggerEditMode = editModeAction != null && editModeAction.triggered;
+        var cancelEdit = cancelEditModeAction != null && cancelEditModeAction.triggered;
+
+        if (triggerEditMode && !cancelEdit)
+        {
+            TransitionState(m_SelectState, m_EditState);
             return;
         }
 
@@ -542,6 +756,38 @@ public class ActionBasedControllerManager : MonoBehaviour
         // Transition from Interact state to Select state when the base interactor no longer has a select target
         if (m_BaseInteractor.selectTarget == null)
             TransitionState(m_InteractState, m_SelectState);
+    }
+
+    void OnUpdateEditState()
+    {
+        // Transition from Edit state to Select state when we release the Edit trigger or cancel Edit mode
+
+        var editModeAction = GetInputAction(m_EditModeActivate);
+        var cancelEditModeAction = GetInputAction(m_EditModeCancel);
+
+        var cancelEdit = cancelEditModeAction != null && cancelEditModeAction.triggered;
+        var releasedEdit = editModeAction != null && editModeAction.phase == InputActionPhase.Waiting;
+
+        var hitTarget = m_EditInteractor.TryGetCurrent3DRaycastHit(out RaycastHit target);
+
+        if (releasedEdit && hitTarget)
+        {
+            TransitionState(m_EditState, m_RadialState);
+        }
+
+        if (cancelEdit || releasedEdit && !hitTarget)
+            TransitionState(m_EditState, m_SelectState);
+    }
+
+    void OnUpdateRadialState()
+    {
+        // Transition from Radial state to Edit state when we cancel Radial mode
+        var cancelEditModeAction = GetInputAction(m_EditModeCancel);
+
+        var cancelEdit = cancelEditModeAction != null && cancelEditModeAction.triggered;
+
+        if (cancelEdit)
+            TransitionState(m_RadialState, m_EditState);
     }
 
     static void EnableAction(InputActionReference actionReference)
