@@ -648,20 +648,7 @@ public class ActionBasedControllerManager : MonoBehaviour
         DisableAction(m_RotateAnchor);
     }
 
-    void OnEnterEditState(StateId previousStateId)
-    {
-        switch (previousStateId)
-        {
-            case StateId.Select:
-                SetEditController(true);
-                break;
-            case StateId.Radial:
-                break;
-            default:
-                Debug.Assert(false, $"Unhandled case when entering Edit from {previousStateId}.");
-                break;
-        }
-    }
+    void OnEnterEditState(StateId previousStateId) => SetEditController(true);
 
     void OnExitEditState(StateId nextStateId)
     {
@@ -683,8 +670,10 @@ public class ActionBasedControllerManager : MonoBehaviour
         EnableAction(m_RadialMenuAxis);
 
         var canvas = m_EditController.GetComponentInChildren<Canvas>();
-
         canvas.enabled = true;
+
+        var menuProvider = m_EditController.GetComponentInChildren<RadialMenuProvider>();
+        menuProvider.enabled = true;
     }
 
     void OnExitRadialState(StateId nextStateId)
@@ -692,8 +681,10 @@ public class ActionBasedControllerManager : MonoBehaviour
         DisableAction(m_RadialMenuAxis);
 
         var canvas = m_EditController.GetComponentInChildren<Canvas>();
-
         canvas.enabled = false;
+
+        var menuProvider = m_EditController.GetComponentInChildren<RadialMenuProvider>();
+        menuProvider.enabled = false;
     }
 
     /// <summary>
@@ -787,7 +778,10 @@ public class ActionBasedControllerManager : MonoBehaviour
         var cancelEdit = cancelEditModeAction != null && cancelEditModeAction.triggered;
 
         if (cancelEdit)
+        {
             TransitionState(m_RadialState, m_EditState);
+            TransitionState(m_EditState, m_SelectState);
+        }
     }
 
     static void EnableAction(InputActionReference actionReference)
