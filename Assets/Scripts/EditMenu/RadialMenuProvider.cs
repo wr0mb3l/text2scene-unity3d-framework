@@ -90,14 +90,14 @@ public class RadialMenuProvider : MonoBehaviour
 
     [SerializeField]
     [Tooltip("The reference to the action of choosing a radial menu option for this controller.")]
-    InputActionReference m_MenuSelectAxis;
+    InputActionReference m_menuSelectAxis;
     /// <summary>
     /// The reference to the action of choosing a radial menu option for this controller."
     /// </summary>
     public InputActionReference menuSelectAxis
     {
-        get => m_MenuSelectAxis;
-        set => m_MenuSelectAxis = value;
+        get => m_menuSelectAxis;
+        set => m_menuSelectAxis = value;
     }
 
     [Space]
@@ -144,6 +144,14 @@ public class RadialMenuProvider : MonoBehaviour
     /// The selected sprite gameObject.
     /// </summary>
     public GameObject selected => m_selected;
+
+    [SerializeField]
+    [Tooltip("The reference to the action of changing the menu page.")]
+    InputActionReference m_pageSwitch;
+    /// <summary>
+    /// The cursor gameObject.
+    /// </summary>
+    public InputActionReference pageSwitch => m_pageSwitch;
 
     [SerializeField]
     [Tooltip("The previous page text gameObject in the radial menu.")]
@@ -198,6 +206,12 @@ public class RadialMenuProvider : MonoBehaviour
         subPage1.buttons.Add(new RadialMenuItem("S1B0"));
         subPage1.buttons.Add(new RadialMenuItem("S1B1"));
         subPage1.buttons.Add(new RadialMenuItem("S1B2"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B3"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B4"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B5"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B6"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B7"));
+        subPage1.buttons.Add(new RadialMenuItem("S1B8"));
 
         menuPage = new RadialMenuPage("Edit menu");
         menuPage.subPages.Add(subPage0);
@@ -210,6 +224,8 @@ public class RadialMenuProvider : MonoBehaviour
         menuPage.buttons.Add(new RadialMenuItem("B5"));
         menuPage.buttons.Add(new RadialMenuItem("B6"));
 
+
+
         m_currentIndex = 0;
         m_hoveredItem = -1;
         m_currentPage = null;
@@ -217,24 +233,22 @@ public class RadialMenuProvider : MonoBehaviour
         SwitchToSubPage();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
     // Update is called once per frame
     void Update()
     {
-        var menuSelectAction = GetInputAction(m_MenuSelectAxis);
-        var canvas = GetComponent<RectTransform>();
+        var menuSelectAction = GetInputAction(m_menuSelectAxis);
+        var menuPageAction = GetInputAction(m_pageSwitch);
+
+        // Handle select input
         if (menuSelectAction != null)
         {
             Vector2 pos = menuSelectAction.ReadValue<Vector2>();
+            var canvas = GetComponent<RectTransform>();
             m_cursor.transform.localPosition = new Vector3(canvas.rect.height*pos.x/2, canvas.rect.width*pos.y/2, 0);
 
             bool inputRelease = menuSelectAction.phase == InputActionPhase.Waiting;
-            if (!inputRelease )
+
+            if (!inputRelease)
             {
                 // Calculate hit button
                 if (pos.magnitude >= 0.625)
@@ -262,6 +276,20 @@ public class RadialMenuProvider : MonoBehaviour
                     m_hoveredItem = -1;
                     m_selected.GetComponent<Image>().enabled = false;
                 }
+
+                // Switch page if necessary
+                if (menuPageAction != null)
+                {
+                    bool pageControl = menuPageAction.triggered;
+                    if (pageControl)
+                    {
+                        if (pos.x > 0 && m_nextPage.activeSelf)
+                            nextPage();
+                        else if (pos.x < 0 && m_previousPage.activeSelf)
+                            prevPage();
+                    }
+                }
+
             }
             else
             {
@@ -271,10 +299,12 @@ public class RadialMenuProvider : MonoBehaviour
             {
                 // Handle release
                 if (m_hoveredItem < m_currentPage.items.Count)
-                    m_currentPage.items[m_hoveredItem].onClick.Invoke();
+                    m_currentPage.items[m_texts.Count * m_currentIndex + m_hoveredItem].onClick.Invoke();
                 m_hoveredItem = -1;
             }
         }
+
+
     }
 
     void SwitchToSubPage()
@@ -282,7 +312,7 @@ public class RadialMenuProvider : MonoBehaviour
         if (m_currentPage == null)
             m_currentPage = menuPage;
         else
-            m_currentPage = m_currentPage.subPages[m_hoveredItem - (m_hoveredItem) / 3 ];
+            m_currentPage = m_currentPage.subPages[m_texts.Count * m_currentIndex + m_hoveredItem];
 
         m_currentIndex = -1;
         nextPage();
@@ -303,6 +333,7 @@ public class RadialMenuProvider : MonoBehaviour
             m_nextPage.SetActive(true);
         showPage();
     }
+
     void prevPage()
     {
         m_currentIndex -= 1;
@@ -313,13 +344,15 @@ public class RadialMenuProvider : MonoBehaviour
         showPage();
 
     }
+
     void showPage()
     {
         var items = m_currentPage.items;
         for (int i = 0; i < m_texts.Count; i++)
         {
-            if (i < items.Count)
-                m_texts[i].GetComponent<Text>().text = items[i].text;
+            var virtualIndex = m_texts.Count * m_currentIndex + i;
+            if (virtualIndex < items.Count)
+                m_texts[i].GetComponent<Text>().text = items[virtualIndex].text;
             else
                 m_texts[i].GetComponent<Text>().text = null;
         }

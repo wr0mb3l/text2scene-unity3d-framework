@@ -1797,6 +1797,7 @@ MonoBehaviour:
     type: 3}
   m_RadialMenuAxis: {fileID: 1245355754628581593, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
+  m_RadialMenuPages: {fileID: 0}
   m_Turn: {fileID: -6493913391331992944, guid: 6c3ae8d98166b584ba17737a5ff888d2, type: 3}
   m_Move: {fileID: -8198699208435500284, guid: 6c3ae8d98166b584ba17737a5ff888d2, type: 3}
   m_TranslateAnchor: {fileID: 875253871413052681, guid: 6c3ae8d98166b584ba17737a5ff888d2,
@@ -2420,6 +2421,7 @@ MonoBehaviour:
   m_EditModeCancel: {fileID: -8679423461026280114, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
   m_RadialMenuAxis: {fileID: 0}
+  m_RadialMenuPages: {fileID: 0}
   m_Turn: {fileID: 1010738217276881514, guid: 6c3ae8d98166b584ba17737a5ff888d2, type: 3}
   m_Move: {fileID: 6972639530819350904, guid: 6c3ae8d98166b584ba17737a5ff888d2, type: 3}
   m_TranslateAnchor: {fileID: 7779212132400271959, guid: 6c3ae8d98166b584ba17737a5ff888d2,
@@ -3552,13 +3554,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81314f8af5ee0774bbd2848355dcb70f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_MenuSelectAxis: {fileID: 1245355754628581593, guid: 6c3ae8d98166b584ba17737a5ff888d2,
+  m_menuSelectAxis: {fileID: 1245355754628581593, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
   m_EditInteractor: {fileID: 0}
   m_SelectedObject: {fileID: 0}
   m_cursor: {fileID: 5353089470384904712}
   m_heading: {fileID: 5353089469544555323}
   m_selected: {fileID: 5353089469341432214}
+  m_pageSwitch: {fileID: 8579040321783428587, guid: 6c3ae8d98166b584ba17737a5ff888d2,
+    type: 3}
   m_previousPage: {fileID: 5353089469704366954}
   m_nextPage: {fileID: 5353089468642109855}
   m_texts:
