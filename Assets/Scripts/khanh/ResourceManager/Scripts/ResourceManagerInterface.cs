@@ -47,12 +47,12 @@ public class ResourceManagerInterface : Interface
     public const string JSONPARAM_LC_TIME = "modified";
     public const string JSONPARAM_LEAF = "leaf";
 
-    public const string LOGIN_MSG = "Dazu müssen Sie\neingeloggt sein.";
+    public const string LOGIN_MSG = "Dazu mï¿½ssen Sie\neingeloggt sein.";
     public const string LOGIN_FAILED_MSG = "Anmeldung fehlgeschlagen.";
     public const string LOGIN_SUCCESS_MSG = "Anmeldung erfolgreich.";
     public const string REQUEST_FAILED_MSG = "Abfrage fehlgeschlagen.";
     public const string SESSION_EXPIRED_MSG = "Sitzung abgelaufen.\nBitte erneut anmelden.";
-    public const string OP_SUCCESS_MSG = " wurde erfolgreich ausgeführt.";
+    public const string OP_SUCCESS_MSG = " wurde erfolgreich ausgefï¿½hrt.";
     public const string OP_FAILED_MSG = " ist fehlgeschlagen.";
     public const string START_DOWNLOAD_MSG = "Download wird gestartet.";
     public const string START_UPLOAD_MSG = "Upload wird gestartet.";
@@ -114,7 +114,6 @@ public class ResourceManagerInterface : Interface
         Name = "ResourceManager";
         OnLogin = (loginData, afterLogin) =>
         {
-            Debug.Log(loginData.Username);
             if (_sessionRequestStarted) Login = loginData;
             else StartCoroutine(GetSession(loginData, (sessionID) => { afterLogin(sessionID != null, LoginMessage); }));
         };
@@ -480,7 +479,7 @@ public class ResourceManagerInterface : Interface
 
         yield return StartCoroutine(SendRequest(requestURL, (JsonData data) =>
         {
-            string msg = "Das Löschen von " + element.ID;
+            string msg = "Das Lï¿½schen von " + element.ID;
 
             bool success = bool.Parse(data[JSONPARAM_SUCCESS].ToString());
 
@@ -848,7 +847,7 @@ public class ResourceManagerInterface : Interface
         }
     }*/
 
-    // ============================== Methode für resources2City ====================================================
+    // ============================== Methode fï¿½r resources2City ====================================================
     //public IEnumerator GetRepositoryInformations(VRResourceData actualFolder, List<VRResourceData> subFolders, Dictionary<string, FolderInfo> folderInfos, 
     //                                                    HashSet<string> detectedFiles, HashSet<string> detectedEmptyFolders, CityScript city)
 

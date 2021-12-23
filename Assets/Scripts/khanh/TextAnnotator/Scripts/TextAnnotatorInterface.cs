@@ -137,8 +137,8 @@ public class TextAnnotatorInterface : Interface
             Response = JsonMapper.ToObject(ee.Data);
             if (Response["cmd"].ToString().Equals("meta")) return;
 
-            Debug.Log(Response["cmd"]);
-            WriteToText(Response.ToJson());
+            Debug.Log(Response.ToJson());
+            //WriteToText(Response.ToJson());
 
             if (!Authorized && Response.Keys.Contains("cmd") && Response["cmd"].ToString().Equals("session"))
                 Authorized = true;
