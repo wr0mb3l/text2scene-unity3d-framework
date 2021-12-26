@@ -1308,10 +1308,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BaseControllerGameObject: {fileID: 1584458305448714245}
   m_TeleportControllerGameObject: {fileID: 1584458305737044084}
+  m_EditControllerGameObject: {fileID: 0}
   m_TeleportModeActivate: {fileID: 1263111715868034790, guid: c348712bda248c246b8c49b3db54643f,
     type: 3}
   m_TeleportModeCancel: {fileID: 737890489006591557, guid: c348712bda248c246b8c49b3db54643f,
     type: 3}
+  m_EditModeActivate: {fileID: 0}
+  m_EditModeCancel: {fileID: 0}
+  m_RadialMenuAxis: {fileID: 0}
+  m_RadialMenuPages: {fileID: 0}
   m_Turn: {fileID: 1010738217276881514, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_Move: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_TranslateAnchor: {fileID: 7779212132400271959, guid: c348712bda248c246b8c49b3db54643f,
@@ -1345,6 +1350,30 @@ MonoBehaviour:
   m_InteractState:
     m_Enabled: 0
     m_Id: 3
+    m_OnEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    m_OnUpdate:
+      m_PersistentCalls:
+        m_Calls: []
+    m_OnExit:
+      m_PersistentCalls:
+        m_Calls: []
+  m_EditState:
+    m_Enabled: 0
+    m_Id: 4
+    m_OnEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    m_OnUpdate:
+      m_PersistentCalls:
+        m_Calls: []
+    m_OnExit:
+      m_PersistentCalls:
+        m_Calls: []
+  m_RadialState:
+    m_Enabled: 0
+    m_Id: 5
     m_OnEnter:
       m_PersistentCalls:
         m_Calls: []
