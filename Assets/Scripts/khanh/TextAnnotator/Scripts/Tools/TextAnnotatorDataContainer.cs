@@ -120,6 +120,7 @@ public class TextAnnotatorDataContainer
         List<string> userList = new List<string>();
         CasId = Json[JSON_CASID].ToString();
         //Text = Json[JSON_TEXT].ToString();
+        //Json[JSON_VIEWS].SetJsonType(JsonType.Array);
         TypeMap = new HashSet<string>(Json[JSON_TYPESYSTEM].Keys);
     }
 

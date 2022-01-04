@@ -31,9 +31,10 @@ public class MenuController : MonoBehaviour
     {
         var usernameInput = lastActiveMenu.transform.Find("UsernameInput").GetComponent<InputField>();
         var passwordInput = lastActiveMenu.transform.Find("PasswordInput").GetComponent<InputField>();
-        string username = usernameInput.text;
-        string password = passwordInput.text;
-        
+        string username = "s8467169";
+        string password = "ahw2LohG";
+        usernameInput.text = username;
+        passwordInput.text = password;
         if (ValidateInput(usernameInput) && ValidateInput(passwordInput))
         {
             StartCoroutine(Login(usernameInput.text, passwordInput.text));
@@ -44,6 +45,7 @@ public class MenuController : MonoBehaviour
     {
         var documentUrlInput = lastActiveMenu.transform.Find("DocumentUrlInput").GetComponent<InputField>();
         var documentId = "27268";
+        documentUrlInput.text = documentId;
         if (ValidateInput(documentUrlInput))
         {
             //StartCoroutine(Load_Document(documentUrlInput.text));
@@ -75,17 +77,17 @@ public class MenuController : MonoBehaviour
         Debug.Log("Document loaded");
         LoadButton.GetComponentInChildren<Text>().text = "View";
 
-        Debug.Log("..........");
+        /*Debug.Log("..........");
         foreach (string view in textAnnotatorInterface.ActualDocument.Views)
             Debug.Log(view);
-        Debug.Log("..........");
+        Debug.Log("..........");*/
 
-        //textAnnotatorInterface.FireJSONCommand(TextAnnotatorInterface.CommandType.open_tool, textAnnotatorInterface.ActualDocument.CasId, null, null, null, view);
+        textAnnotatorInterface.FireJSONCommand(TextAnnotatorInterface.CommandType.open_tool, textAnnotatorInterface.ActualDocument.CasId, null, null, null, view);
 
-        //while (!textAnnotatorInterface.ActualDocument.DocumentCreated)
-        //    yield return null;
+        while (!textAnnotatorInterface.ActualDocument.DocumentCreated)
+            yield return null;
 
-        //Debug.Log("View loaded");
+        Debug.Log("View loaded");
 
         //StartCoroutine(Create_Scene());
     }
