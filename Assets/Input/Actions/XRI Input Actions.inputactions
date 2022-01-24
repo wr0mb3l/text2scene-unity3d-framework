@@ -655,15 +655,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Edit Select",
-                    "type": "Button",
-                    "id": "d6216ed8-bea4-45f0-a1c8-5df1d87803be",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Edit Mode Activate",
+                    "name": "Radial Mode Activate",
                     "type": "Button",
                     "id": "68a00e99-bd26-4b13-90ec-d5e8af6be09b",
                     "expectedControlType": "Button",
@@ -671,7 +663,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Edit Mode Cancel",
+                    "name": "Radial Mode Cancel",
                     "type": "Button",
                     "id": "324902bd-99a3-4d39-9b67-9a21a818eae7",
                     "expectedControlType": "Button",
@@ -687,7 +679,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Radial Pages",
+                    "name": "Radial Click",
                     "type": "Button",
                     "id": "4b6f9cdb-7ac9-4a7c-9c7b-789ca04d953f",
                     "expectedControlType": "Button",
@@ -1011,7 +1003,7 @@
                     "interactions": "Sector(directions=2,sweepBehavior=3)",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Edit Mode Activate",
+                    "action": "Radial Mode Activate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -1022,7 +1014,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Edit Mode Cancel",
+                    "action": "Radial Mode Cancel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -1033,7 +1025,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Edit Mode Activate",
+                    "action": "Radial Mode Activate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -1094,34 +1086,12 @@
                 },
                 {
                     "name": "",
-                    "id": "0fd6a2d5-e278-415c-b985-9975d9ddd31a",
-                    "path": "<XRController>{RightHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=-1,sweepBehavior=3)",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Edit Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "0fea0be1-ef21-4c5e-9193-d1f335902596",
-                    "path": "<XRController>{RightHand}/primaryButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Edit Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "e8d3c782-834f-4c3d-ab43-c2cfebf41cfd",
-                    "path": "<XRController>{RightHand}/triggerPressed",
+                    "path": "<XRController>{RightHand}/trackpadClicked",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Radial Pages",
+                    "action": "Radial Click",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

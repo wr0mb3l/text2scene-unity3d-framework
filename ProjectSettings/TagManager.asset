@@ -15,6 +15,8 @@ TagManager:
   - 
   - 
   - 
+  - Link
+  - SpatialEntity
   - 
   - 
   - 
@@ -34,8 +36,6 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - edit
   - teleport
   m_SortingLayers:
   - name: Default
