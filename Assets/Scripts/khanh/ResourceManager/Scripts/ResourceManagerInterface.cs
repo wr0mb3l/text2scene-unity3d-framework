@@ -308,7 +308,7 @@ public class ResourceManagerInterface : Interface
     /// <param name="actualFolder">The folder which content should be loaded.</param>
     /// <param name="onLoaded">Defines what should happen after loading the content.</param>
     /// <returns></returns>
-    /*public IEnumerator GetRepositoryInformations(VRResourceData actualFolder, OnDataLoaded onLoaded)
+    public IEnumerator GetRepositoryInformations(VRResourceData actualFolder, OnDataLoaded onLoaded)
     {
         actualFolder.Clear();
         yield return StartCoroutine(GetSession());
@@ -385,7 +385,7 @@ public class ResourceManagerInterface : Interface
         }
 
         onLoaded?.Invoke();
-    }*/
+    }
 
     /// <summary>
     /// A function to get informations about the content of a certain folder of the ResourceManager.
@@ -394,7 +394,7 @@ public class ResourceManagerInterface : Interface
     /// <param name="actualFolder">The folder which content should be loaded.</param>
     /// <param name="onLoaded">Defines what should happen after loading the content.</param>
     /// <returns></returns>
-    /*public IEnumerator GetRepositoryTAInformations(VRResourceData actualFolder, OnDataLoaded onLoaded)
+    public IEnumerator GetRepositoryTAInformations(VRResourceData actualFolder, OnDataLoaded onLoaded)
     {
         actualFolder.Clear();
         yield return StartCoroutine(GetSession());
@@ -457,7 +457,7 @@ public class ResourceManagerInterface : Interface
         }
 
         onLoaded?.Invoke();
-    }*/
+    }
 
     /// <summary>
     /// A delegate function that can define the actions after a request has been answered by the server.
@@ -501,7 +501,7 @@ public class ResourceManagerInterface : Interface
     /// <param name="downloadFolder">The folder, where the data should be stored locally.</param>
     /// <param name="onAnswer">The actions to be performed after the download is done.</param>
     /// <returns></returns>
-/*    public IEnumerator DownloadResource(VRResourceData file, string downloadFolder, OnRequestAnswer onAnswer)
+    public IEnumerator DownloadResource(VRResourceData file, string downloadFolder, OnRequestAnswer onAnswer)
     {
 
         bool success = false;
@@ -531,7 +531,7 @@ public class ResourceManagerInterface : Interface
 
         onAnswer(success);
     }
-*/
+
     /// <summary>
     /// A function for downloading data from the ResourceManager and storing it on the local filesystem.
     /// </summary>
@@ -703,7 +703,7 @@ public class ResourceManagerInterface : Interface
     /// </summary>
     /// <param name="browser">The DataBrowser instance.</param>
     /// <returns></returns>
- /*   private IEnumerator SetupBrowser(DataBrowser browser)
+    /*private IEnumerator SetupBrowser(DataBrowser browser)
     {
         // Close any panels animated
         browser.DataPanel.SetComponentStatus(false);
