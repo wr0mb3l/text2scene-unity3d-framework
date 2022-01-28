@@ -51,6 +51,12 @@ public class TextAnnotatorDataContainer
     public const string JSON_HEIGHT = "height";
     public const string JSON_VIEWS = "views";
 
+    public class AnnotationView
+    {
+        public string view { get; set; }
+        public bool iaacheck { get; set; }
+        public int permission { get; set;  }
+    }
     /// <summary>
     /// Die ID des Dokuments.
     /// </summary>
@@ -59,7 +65,7 @@ public class TextAnnotatorDataContainer
     /// <summary>
     /// Wörterbuch mit uri-Name Paaren, die die Views des Dokuments darstellen.
     /// </summary>
-    public Dictionary<string, string> ViewNameMap;
+    //public Dictionary<string, string> ViewNameMap;
 
     /// <summary>
     /// Die Viewliste des Dokuments.
@@ -79,7 +85,7 @@ public class TextAnnotatorDataContainer
     /// <summary>
     /// Die Klasseninstanz des Dokuments.
     /// </summary>
-    //public AnnotationDocument Document;
+    public AnnotationDocument Document;
     public JsonData Json { get; private set; }
     private JsonData TypesJson;
     private HashSet<string> TypeMap = new HashSet<string>();
@@ -110,17 +116,18 @@ public class TextAnnotatorDataContainer
     /// <summary>
     /// Gibt an, ob die Views des Dokuments geladen wurden.
     /// </summary>
-    public bool ViewsLoaded { get { return ViewNameMap != null; } }
+    public bool ViewsLoaded { get { return Views != null; } }
 
     /// <summary>Der Konstruktor initialisiert den TextAnnotatorDataContainer.</summary>
     /// <param name="json">Die Daten vom  nach dem create_db_cas, oder open_cas in JSON</param>
     public TextAnnotatorDataContainer(JsonData json)
     {
         Json = json[JSON_DATA];
-        List<string> userList = new List<string>();
         CasId = Json[JSON_CASID].ToString();
-        //Text = Json[JSON_TEXT].ToString();
-        //Json[JSON_VIEWS].SetJsonType(JsonType.Array);
+        Text = Json[JSON_TEXT].ToString();
+        var arr = JsonMapper.ToObject<List<AnnotationView>>(Json[JSON_VIEWS].ToJson());
+        Views = arr.Where(item => item.view != null).Select(item => item.view).ToList();
+        View = Views.First();
         TypeMap = new HashSet<string>(Json[JSON_TYPESYSTEM].Keys);
     }
 
@@ -131,7 +138,7 @@ public class TextAnnotatorDataContainer
 
     /// <summary>Die Methode erstellt das Dokument und alle zugehörigen Textelemente aus dem JSON.</summary>
     /// <param name="data">Der JSON nach dem Öffnen des Tools.</param>
-    /*public void CreateDocument(JsonData data)
+    public void CreateDocument(JsonData data)
     {
         Debug.Log("Create: Document");
 
@@ -167,9 +174,9 @@ public class TextAnnotatorDataContainer
         AnnotationBase element;
 
         Document = new AnnotationDocument(id, Text);
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get chapters
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         if (TypesJson.Keys.Contains(AnnotationTypes.CHAPTER))
             objList = TypesJson[AnnotationTypes.CHAPTER];
         else
@@ -200,9 +207,9 @@ public class TextAnnotatorDataContainer
         if (ErrorMessage.Length > 0) Debug.Log("ERROR:\n" + ErrorMessage);
         if (WarningMessage.Length > 0) Debug.Log("WARNING:\n" + WarningMessage);
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get paragraphs
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Paragraph");
         if (TypesJson.Keys.Contains(AnnotationTypes.PARAGRAPH))
             objList = TypesJson[AnnotationTypes.PARAGRAPH];
@@ -237,9 +244,9 @@ public class TextAnnotatorDataContainer
             //c.BuildParagraphGroups();
         }
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get sentences
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Sentence");
         objList = TypesJson[AnnotationTypes.SENTENCE];
         Dictionary<Paragraph, List<Sentence>> sentences = new Dictionary<Paragraph, List<Sentence>>();
@@ -261,9 +268,9 @@ public class TextAnnotatorDataContainer
         foreach (Paragraph p in sentences.Keys)
             p.SetChildElements(sentences[p]);
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get tokens
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Token");
         objList = TypesJson[AnnotationTypes.TOKEN];
         Dictionary<Sentence, List<AnnotationToken>> tokens = new Dictionary<Sentence, List<AnnotationToken>>();
@@ -284,9 +291,9 @@ public class TextAnnotatorDataContainer
         foreach (Sentence s in tokens.Keys)
             s.SetChildElements(tokens[s]);
 
-        *//************************************************************************************************************
+        /***********************************************************************************************************
         get multi-tokens
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Quick Tree Nodes");
         if (TypesJson.Keys.Contains(AnnotationTypes.QUICK_TREE_NODE))
         {
@@ -322,9 +329,9 @@ public class TextAnnotatorDataContainer
             }
         }
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get named-entities
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Named Entity");
         NamedEntity namedEntity;
         foreach (JsonData type in NamedEntities)
@@ -340,9 +347,9 @@ public class TextAnnotatorDataContainer
             }
         }
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get DDC-categories
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: DDC");
         if (TypesJson.Keys.Contains(AnnotationTypes.DDC_CATEGORY))
         {
@@ -371,9 +378,9 @@ public class TextAnnotatorDataContainer
 
             }
         }
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get sentiments
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Sentiments");
         if (TypesJson.Keys.Contains(AnnotationTypes.SENTIMENT))
         {
@@ -393,9 +400,9 @@ public class TextAnnotatorDataContainer
             }
         }
 
-        *//************************************************************************************************************
+       /************************************************************************************************************
        get part-of-speeches
-       ************************************************************************************************************//*
+       ************************************************************************************************************/
         Debug.Log("- Create: PoS");
         PartOfSpeech pos;
         foreach (string type in PosTypes)
@@ -413,10 +420,10 @@ public class TextAnnotatorDataContainer
             }
         }
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get vectors
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Vectors");
+        Debug.Log("- Create: Vectors");
         if (TypesJson.Keys.Contains(AnnotationTypes.VEC3))
         {
             objList = TypesJson[AnnotationTypes.VEC3];
@@ -435,13 +442,13 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 TextAnnotatorInterface.ExtractVector4(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*//*
+        }
 
-        //IsoObjectAttribute objectAttribute;
-        *//************************************************************************************************************
+        IsoObjectAttribute objectAttribute;
+        /************************************************************************************************************
         get ObjectAttributes (has to be extracted before spatial entities because of data race)
         ************************************************************************************************************/
-        /*if (TypesJson.Keys.Contains(AnnotationTypes.OBJECT_ATTRIBUTE))
+        if (TypesJson.Keys.Contains(AnnotationTypes.OBJECT_ATTRIBUTE))
         {
             objList = TypesJson[AnnotationTypes.OBJECT_ATTRIBUTE];
             foreach (string oId in objList.Keys)
@@ -449,12 +456,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 objectAttribute = TextAnnotatorInterface.ExtractIsoObjectAttribute(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get spatial entities
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Spatial Entity");
+        Debug.Log("- Create: Spatial Entity");
         if (TypesJson.Keys.Contains(AnnotationTypes.SPATIAL_ENTITY))
         {
             bool addedObjects = false;
@@ -466,12 +473,12 @@ public class TextAnnotatorDataContainer
                     end = int.Parse(objList[oId][JSON_FEATURES][JSON_END].ToString());
                     TextAnnotatorInterface.ExtractSpatialEntity<IsoSpatialEntity>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get location paths
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Path");
+        Debug.Log("- Create: Path");
         if (TypesJson.Keys.Contains(AnnotationTypes.PATH))
         {
             objList = TypesJson[AnnotationTypes.PATH];
@@ -480,12 +487,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 TextAnnotatorInterface.ExtractSpatialEntity<IsoLocationPath>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get location places
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Place");
+        Debug.Log("- Create: Place");
         if (TypesJson.Keys.Contains(AnnotationTypes.PLACE))
         {
             objList = TypesJson[AnnotationTypes.PLACE];
@@ -494,12 +501,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 TextAnnotatorInterface.ExtractSpatialEntity<IsoLocationPlace>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get locations
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Path");
+        Debug.Log("- Create: Path");
         if (TypesJson.Keys.Contains(AnnotationTypes.LOCATION))
         {
             objList = TypesJson[AnnotationTypes.LOCATION];
@@ -508,12 +515,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 TextAnnotatorInterface.ExtractSpatialEntity<IsoLocation>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get event paths
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Event Path");
+        Debug.Log("- Create: Event Path");
         if (TypesJson.Keys.Contains(AnnotationTypes.EVENT_PATH))
         {
             objList = TypesJson[AnnotationTypes.EVENT_PATH];
@@ -522,15 +529,15 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 TextAnnotatorInterface.ExtractSpatialEntity<IsoEventPath>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*//*
+        }
 
 
 
-        //IsoSignal signal;
-        *//************************************************************************************************************
+        IsoSignal signal;
+        /************************************************************************************************************
         get IsoMeasures
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Measure");
+        Debug.Log("- Create: Measure");
         if (TypesJson.Keys.Contains(AnnotationTypes.MEASURE))
         {
             objList = TypesJson[AnnotationTypes.MEASURE];
@@ -539,12 +546,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 signal = TextAnnotatorInterface.ExtractSignal<IsoMeasure>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get IsoSpatialSignals
         ************************************************************************************************************//*
-        //if (TypesJson.Keys.Contains(AnnotationTypes.SPATIAL_SIGNAL))
+        *//*//if (TypesJson.Keys.Contains(AnnotationTypes.SPATIAL_SIGNAL))
         //{
         //    Debug.LogError("Spatial_Signal found");
         *//*
@@ -553,12 +560,12 @@ public class TextAnnotatorDataContainer
         {
             id = int.Parse(oId);
             signal = TextAnnotatorInterface.ExtractSignal<IsoSpatialSignal>(id, objList[oId][JSON_FEATURES], Document);
-        }*//*
+        }*/
         //}
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get IsoMotionSignals
         ************************************************************************************************************/
-        /* if (TypesJson.Keys.Contains(AnnotationTypes.MOTION_SIGNAL))
+        if (TypesJson.Keys.Contains(AnnotationTypes.MOTION_SIGNAL))
          {
              Debug.LogError("Motion_Signal found");
 
@@ -569,11 +576,11 @@ public class TextAnnotatorDataContainer
                  signal = TextAnnotatorInterface.ExtractSignal<IsoSRelation>(id, objList[oId][JSON_FEATURES], Document);
              }
          }
-         Debug.Log("16.5");*/
+         Debug.Log("16.5");
         /************************************************************************************************************
         get IsoSRelation
         ************************************************************************************************************/
-        /*Debug.Log("- Create: SRelation");
+        Debug.Log("- Create: SRelation");
         if (TypesJson.Keys.Contains(AnnotationTypes.SRELATION))
         {
             objList = TypesJson[AnnotationTypes.SRELATION];
@@ -582,12 +589,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 signal = TextAnnotatorInterface.ExtractSignal<IsoSRelation>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get IsoMRelation
         ************************************************************************************************************/
-        /*Debug.Log("- Create: MRelation");
+        Debug.Log("- Create: MRelation");
         if (TypesJson.Keys.Contains(AnnotationTypes.MRELATION))
         {
             objList = TypesJson[AnnotationTypes.MRELATION];
@@ -596,28 +603,28 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 signal = TextAnnotatorInterface.ExtractSignal<IsoMRelation>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get IsoSignals
         ************************************************************************************************************/
-        /*if (TypesJson.Keys.Contains(AnnotationTypes.SIGNAL))
+        if (TypesJson.Keys.Contains(AnnotationTypes.SIGNAL))
         {
             Debug.LogError("There should net be a signal");
-            *//*
+            
             objList = TypesJson[AnnotationTypes.SIGNAL];
             foreach (string oId in objList.Keys)
             {
                 id = int.Parse(oId);
                 signal = TextAnnotatorInterface.ExtractSignal<IsoSignal>(id, objList[oId][JSON_FEATURES], Document);
-            }*//*
-        }*//*
+            }
+        }
 
-        //IsoEvent isoEvent;
-        *//************************************************************************************************************
+        IsoEvent isoEvent;
+        /************************************************************************************************************
         get IsoMotions
         ************************************************************************************************************/
-        /*Debug.Log("- Create: Motions");
+        Debug.Log("- Create: Motions");
         if (TypesJson.Keys.Contains(AnnotationTypes.MOTION))
         {
             objList = TypesJson[AnnotationTypes.MOTION];
@@ -626,12 +633,12 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 isoEvent = TextAnnotatorInterface.ExtractEvent<IsoMotion>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get IsoEvents
         ************************************************************************************************************/
-        /*Debug.Log("- Create: NonMotion");
+        Debug.Log("- Create: NonMotion");
         if (TypesJson.Keys.Contains(AnnotationTypes.NON_MOTION_EVENT))
         {
             objList = TypesJson[AnnotationTypes.NON_MOTION_EVENT];
@@ -640,18 +647,18 @@ public class TextAnnotatorDataContainer
                 id = int.Parse(oId);
                 isoEvent = TextAnnotatorInterface.ExtractEvent<IsoNonMotionEvent>(id, objList[oId][JSON_FEATURES], Document);
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get iso links
-        ************************************************************************************************************//*
+        ************************************************************************************************************/
         Debug.Log("- Create: Links");
         List<string> brokenLinks = new List<string>();
-        //IsoLink link;
+        IsoLink link;
         if (TypesJson.Keys.Contains(AnnotationTypes.LINK))
         {
             Debug.LogError("Error. There should not be any link.");
-            *//*
+            
             objList = TypesJson[AnnotationTypes.LINK];            
             foreach (string oId in objList.Keys)
             {
@@ -663,13 +670,13 @@ public class TextAnnotatorDataContainer
                     Debug.Log("" + link.GetType() + " " + oId + " was broken.");
                     brokenLinks.Add(oId);
                 }
-            }*//*
+            }
         }
 
-        *//************************************************************************************************************
+        /************************************************************************************************************
         get iso QsLinks
         ************************************************************************************************************/
-        /*Debug.Log("- Create: ´QSLink");
+        Debug.Log("- Create: ´QSLink");
         if (TypesJson.Keys.Contains(AnnotationTypes.QSLINK))
         {
             objList = TypesJson[AnnotationTypes.QSLINK];
@@ -684,12 +691,12 @@ public class TextAnnotatorDataContainer
                 }
 
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get iso OLinks
         ************************************************************************************************************/
-        /*Debug.Log("- Create: OLINK");
+        Debug.Log("- Create: OLINK");
         if (TypesJson.Keys.Contains(AnnotationTypes.OLINK))
         {
             objList = TypesJson[AnnotationTypes.OLINK];
@@ -703,12 +710,12 @@ public class TextAnnotatorDataContainer
                     brokenLinks.Add(oId);
                 }
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get iso SRLinks
         ************************************************************************************************************/
-        /*Debug.Log("- Create: SRLink");
+        Debug.Log("- Create: SRLink");
         if (TypesJson.Keys.Contains(AnnotationTypes.SR_LINK))
         {
             objList = TypesJson[AnnotationTypes.SR_LINK];
@@ -722,19 +729,19 @@ public class TextAnnotatorDataContainer
                     brokenLinks.Add(oId);
                 }
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get iso MetaLinks
         ************************************************************************************************************/
-        /*Debug.Log("- Create: MetaLink");
+        Debug.Log("- Create: MetaLink");
         if (TypesJson.Keys.Contains(AnnotationTypes.META_LINK))
         {
             objList = TypesJson[AnnotationTypes.META_LINK];
             foreach (string oId in objList.Keys)
             {
                 id = int.Parse(oId);
-                Debug.Log(id);
+                //Debug.Log(id);
                 link = TextAnnotatorInterface.ExtractLink<IsoMetaLink>(id, objList[oId][JSON_FEATURES], Document);
                 Debug.Log("Link extracted");
                 if (objList[oId][JSON_FEATURES]["rel_type"].ToString() == "MASK")
@@ -750,12 +757,12 @@ public class TextAnnotatorDataContainer
                     brokenLinks.Add(oId);
                 }
             }
-        }*/
+        }
 
         /************************************************************************************************************
         get iso MLink
         ************************************************************************************************************/
-        /*Debug.Log("- Create: MLink");
+        Debug.Log("- Create: MLink");
         if (TypesJson.Keys.Contains(AnnotationTypes.MLINK))
         {
             objList = TypesJson[AnnotationTypes.MLINK];
@@ -774,9 +781,9 @@ public class TextAnnotatorDataContainer
         if (brokenLinks.Count > 0)
         {
             Debug.Log("Removing broken links...");
-            SceneController.GetInterface<TextAnnotatorInterface>().DeleteElements(brokenLinks);
+            MenuController.GetTextAnnotatorInterface().DeleteElements(brokenLinks);
         }
-        else Debug.Log("No broken links was found.");*//*
+        else Debug.Log("No broken links was found.");
 
         foreach (Type type in Document.Type_Map.Keys)
             Document.Type_Map[type].Sort((x, y) => x.Begin.CompareTo(y.Begin));
@@ -789,14 +796,14 @@ public class TextAnnotatorDataContainer
         DocumentCreated = true;
 
         Debug.Log("Document created");
-    }*/
+    }
 
     HashSet<string[]> res;
     /// <summary>Die Methode gibt alle Elemente eines bestimmten Typs zwischen dem gewünschten Start- und Endindex als (ID, Begin, End)-Tripel zurück.</summary>
     /// <param name="type">Der gewünschte Typesytem-Typ.</param>
     /// <param name="_begin">Der Startindex.</param>
     /// <param name="_end">Der Endindex.</param>
-    /*public HashSet<string[]> GetElementsInRangeByType(Type type, int _begin, int _end)
+    public HashSet<string[]> GetElementsInRangeByType(Type type, int _begin, int _end)
     {
         res = new HashSet<string[]>();
         if (TypesJson.Keys.Contains(AnnotationTypes.ClassTypesystemTable[type]))
@@ -818,17 +825,17 @@ public class TextAnnotatorDataContainer
         }
 
         return res;
-    }*/
+    }
 
     /// <summary>Die Methode lädt alle Part-of-speech Typen des Dokuments.</summary>
-    /*private void GetPosTypeMap()
+    private void GetPosTypeMap()
     {
         foreach (string key in TypesJson.Keys)
         {
             if (key.Contains(AnnotationTypes.PART_OF_SPEECH))
                 PosTypes.Add(key);
         }
-    }*/
+    }
 
     /// <summary>Die Methode lädt alle Named-Entity Typen des Dokuments.</summary>
     private void GetNamedEntities()

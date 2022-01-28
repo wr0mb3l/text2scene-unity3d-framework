@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using LitJson;
 using System;
 //using Valve.VR;
-//using DT = IsoSpatialEntity.DimensionType;
-//using CT = IsoLocationPlace.ContinentType;
-//using CTV = IsoLocationPlace.CTV;
-//using FT = IsoSpatialEntity.FormType;
+using DT = IsoSpatialEntity.DimensionType;
+using CT = IsoLocationPlace.ContinentType;
+using CTV = IsoLocationPlace.CTV;
+using FT = IsoSpatialEntity.FormType;
 //using Text2Scene;
 
 /// <summary>
@@ -137,8 +137,8 @@ public class TextAnnotatorInterface : Interface
             Response = JsonMapper.ToObject(ee.Data);
             if (Response["cmd"].ToString().Equals("meta")) return;
 
-            //Debug.Log(Response.ToJson());
-            WriteToText(Response.ToJson());
+            Debug.Log(Response.ToJson());
+            //WriteToText(Response.ToJson());
 
             if (!Authorized && Response.Keys.Contains("cmd") && Response["cmd"].ToString().Equals("session"))
                 Authorized = true;
@@ -159,7 +159,7 @@ public class TextAnnotatorInterface : Interface
             //if (Response["cmd"].ToString().Equals("change_cas") && Document_Map.ContainsKey(id))
             //    ChangeQueue.Enqueue(Response["data"]);
 
-            /*if (Response["cmd"].ToString().Equals("open_tool"))
+            if (Response["cmd"].ToString().Equals("open_tool"))
             {
                 if (!Document_Map.ContainsKey(id))
                     DebugOnSocketTransfer("Document " + Response["data"]["casId"].ToString() + " that should be opened, was not found in the Document-Map");
@@ -167,9 +167,7 @@ public class TextAnnotatorInterface : Interface
                     DebugOnSocketTransfer("No Toolelements found on opening a view of document " + Response["data"]["casId"].ToString());
                 else
                     Document_Map[id].CreateDocument(Response["data"]["toolElements"]);
-
-
-            }*/
+            }
 
         };
         Client.OnClose += (ss, ee) =>
@@ -255,11 +253,11 @@ public class TextAnnotatorInterface : Interface
             }
 
             doc.Views = viewList;
-            doc.ViewNameMap = viewMap;
+            //doc.ViewNameMap = viewMap;
         }
     }
 
-    //private AnnotationBase _toRemove, _toChange, _parent;
+    private AnnotationBase _toRemove, _toChange, _parent;
     private int _id, _begin, _end, _parentNode;
     private bool _docUpdated;
     private TextAnnotatorDataContainer _editedDoc;
@@ -706,6 +704,147 @@ public class TextAnnotatorInterface : Interface
         CloseSocketConnection();
     }
 
+    private JsonData featureBatch; private JsonData featureFeatureBatch; private JsonData cmd; private JsonData queue; private JsonData children;
+    /// <summary>Mit dieser Methode können Anfragen an den Server geschickt werden.</summary>
+    /// <param name="addrs">Die ID-Liste aller zu löschenden Textelementen.</param>
+    /// <param name="features">This dictionary should contain all elements, that should be created (key: annotation-type, value: a list of feature-maps for each object).</param>
+    /// <param name="updates">This dictionary should contain all elements, that should be updated (key: id of the object, value: the feature-map with the updates).</param>
+    /// <param name="childrens">This should be a JSON-Array and only used for QuickTreeNodes.</param>
+    public void FireWorkBatchCommand(List<string> addrs, Dictionary<string, List<Dictionary<string, object>>> features, Dictionary<string, Dictionary<string, object>> updates, JsonData childrens)
+    {
+        if (addrs == null && features == null && updates == null) return;
+
+        queue = new JsonData();
+
+        if (addrs != null)
+        {
+            foreach (string addr in addrs)
+            {
+                data = new JsonData();
+                data["bid"] = "_b1_";
+                data["addr"] = addr;
+
+                cmd = new JsonData();
+                cmd["cmd"] = "remove";
+                cmd["data"] = data;
+                queue.Add(cmd);
+            }
+        }
+
+        if (features != null)
+        {
+            foreach (string type in features.Keys)
+            {
+                foreach (Dictionary<string, object> featureMap in features[type])
+                {
+                    featureBatch = new JsonData();
+                    foreach (string key in featureMap.Keys)
+                    {
+                        if (featureMap[key] is null)
+                            featureBatch[key] = null;
+                        if (featureMap[key] is JsonData)
+                            featureBatch[key] = (JsonData)featureMap[key];
+                        if (featureMap[key] is int)
+                            featureBatch[key] = (int)featureMap[key];
+                        if (featureMap[key] is string)
+                            featureBatch[key] = (string)featureMap[key];
+                        if (featureMap[key] is double)
+                            featureBatch[key] = (double)featureMap[key];
+                        if (featureMap[key] is bool)
+                            featureBatch[key] = (bool)featureMap[key];
+                        if (featureMap[key] is AnnotationBase)
+                            featureBatch[key] = (int)((AnnotationBase)featureMap[key]).ID;
+                        if (featureMap[key] is IEnumerable<AnnotationBase>)
+                        {
+                            IEnumerable<AnnotationBase> elements = (IEnumerable<AnnotationBase>)featureMap[key];
+                            JsonData jsonArray = new JsonData();
+                            foreach (AnnotationBase ab in elements)
+                                jsonArray.Add((int)ab.ID);
+                            featureBatch[key] = jsonArray;
+                        }
+                    }
+
+                    data = new JsonData();
+                    data["bid"] = "_b0_";
+                    data["_type"] = type;
+                    data["features"] = featureBatch;
+
+                    cmd = new JsonData();
+                    cmd["cmd"] = "create";
+                    cmd["data"] = data;
+
+                    queue.Add(cmd);
+                }
+            }
+
+            if (childrens != null)
+            {
+                for (int i = 0; i < childrens.Count; i++)
+                {
+                    featureBatch = new JsonData();
+                    featureBatch["parent"] = "_b0_";
+
+                    data = new JsonData();
+                    data["features"] = featureBatch;
+                    data["bid"] = "_b" + (i + 1) + "_";
+                    data["addr"] = childrens[i];
+
+                    cmd = new JsonData();
+                    cmd["cmd"] = "edit";
+                    cmd["data"] = data;
+
+                    queue.Add(cmd);
+                }
+            }
+        }
+
+        if (updates != null)
+        {
+            foreach (string id in updates.Keys)
+            {
+                featureBatch = new JsonData();
+                foreach (string key in updates[id].Keys)
+                {
+                    if (updates[id][key] is null)
+                        featureBatch[key] = null;
+                    if (updates[id][key] is JsonData)
+                        featureBatch[key] = (JsonData)updates[id][key];
+                    if (updates[id][key] is int)
+                        featureBatch[key] = (int)updates[id][key];
+                    if (updates[id][key] is string)
+                        featureBatch[key] = (string)updates[id][key];
+                    if (updates[id][key] is double)
+                        featureBatch[key] = (double)updates[id][key];
+                    if (updates[id][key] is bool)
+                        featureBatch[key] = (bool)updates[id][key];
+                    if (updates[id][key] is AnnotationBase)
+                        featureBatch[key] = (int)((AnnotationBase)updates[id][key]).ID;
+                    if (updates[id][key] is IEnumerable<AnnotationBase>)
+                    {
+                        IEnumerable<AnnotationBase> elements = (IEnumerable<AnnotationBase>)updates[id][key];
+                        JsonData jsonArray = new JsonData();
+                        foreach (AnnotationBase ab in elements)
+                            jsonArray.Add((int)ab.ID);
+                        featureBatch[key] = jsonArray;
+                    }
+                }
+
+                data = new JsonData();
+                data["bid"] = "_b0_";
+                data["features"] = featureBatch;
+                data["addr"] = id;
+
+                cmd = new JsonData();
+                cmd["cmd"] = "edit";
+                cmd["data"] = data;
+
+                queue.Add(cmd);
+            }
+        }
+
+        FireJSONCommand(CommandType.work_batch, ActualDocument.CasId, queue, null, null, ActualDocument.View);
+
+    }
 
     public void Redo()
     {
@@ -854,4 +993,1705 @@ public class TextAnnotatorInterface : Interface
     {
         Debug.Log(message);
     }
- }
+
+    // Vec3 methods
+    #region
+    public Dictionary<string, object> CreateVec3AttributeMap(float x, float y, float z)
+    {
+        return new Dictionary<string, object>() { { "x", (double)x }, { "y", (double)y }, { "z", (double)z } };
+    }
+
+    public void SendVec3CreatingRequest(float x, float y, float z)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.VEC3, new List<Dictionary<string, object>>() { CreateVec3AttributeMap(x, y, z) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public void ChangeVec3(string id, float x, float y, float z)
+    {
+        Dictionary<string, Dictionary<string, object>> _updateMap = new Dictionary<string, Dictionary<string, object>>();
+        _updateMap.Add(id, CreateVec3AttributeMap(x, y, z));
+        FireWorkBatchCommand(null, null, _updateMap, null);
+    }
+
+    public static IsoVector3 ExtractVector3(int id, JsonData data, AnnotationDocument doc, IsoVector3 vec3 = null)
+    {
+        float x = data.ContainsKey("x") ? float.Parse(data["x"].ToString()) : 0;
+        float y = data.ContainsKey("y") ? float.Parse(data["y"].ToString()) : 0;
+        float z = data.ContainsKey("z") ? float.Parse(data["z"].ToString()) : 0;
+        if (vec3 != null) vec3.SetVector(new Vector3(x, y, z));
+        else vec3 = new IsoVector3(id, x, y, z, doc);
+        return vec3;
+    }
+    #endregion
+
+    // Vec4 methods
+    #region
+    public Dictionary<string, object> CreateVec4AttributeMap(float x, float y, float z, float w)
+    {
+        return new Dictionary<string, object>() { { "x", (double)x }, { "y", (double)y }, { "z", (double)z }, { "w", (double)w } };
+    }
+
+    public void SendVec4CreatingRequest(float x, float y, float z, float w)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.VEC4, new List<Dictionary<string, object>>() { CreateVec4AttributeMap(x, y, z, w) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public void ChangeVec4(string id, float x, float y, float z, float w)
+    {
+        Dictionary<string, Dictionary<string, object>> _updateMap = new Dictionary<string, Dictionary<string, object>>();
+        _updateMap.Add(id, CreateVec4AttributeMap(x, y, z, w));
+        FireWorkBatchCommand(null, null, _updateMap, null);
+    }
+
+    public static IsoVector4 ExtractVector4(int id, JsonData data, AnnotationDocument doc, IsoVector4 vec4 = null)
+    {
+        float x = data.ContainsKey("x") ? float.Parse(data["x"].ToString()) : 0;
+        float y = data.ContainsKey("y") ? float.Parse(data["y"].ToString()) : 0;
+        float z = data.ContainsKey("z") ? float.Parse(data["z"].ToString()) : 0;
+        float w = data.ContainsKey("w") ? float.Parse(data["w"].ToString()) : 0;
+        if (vec4 != null) vec4.SetQuaternion(new Quaternion(x, y, z, w));
+        else vec4 = new IsoVector4(id, x, y, z, w, doc);
+        return vec4;
+    }
+    #endregion
+
+    // Link methods
+    #region
+    public void SendLinkCreatingRequest(string linkdatatype, IsoEntity figure, IsoEntity ground, IsoSignal signal, string link_type, string comment = null)
+    {
+        Debug.Log("Create Link Request");
+        IsoEntity _figure = figure.GetFirstCorefReferent();
+        IsoEntity _ground = ground.GetFirstCorefReferent();
+        if (_figure == _ground)
+            return;
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateLinkAttributeMap(_figure, _ground, link_type, signal, comment: comment);
+        _featureMap.Add(linkdatatype, new List<Dictionary<string, object>>() { _attributes });
+        Debug.Log(_featureMap);
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public void SendOLinkCreatingRequest(IsoEntity figure, IsoEntity ground, IsoSignal signal, string frameType, IsoEntity referencePt, string link_type, string comment = null)
+    {
+        IsoEntity _figure = figure.GetFirstCorefReferent();
+        IsoEntity _ground = ground.GetFirstCorefReferent();
+        if (_figure == _ground)
+            return;
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateOLinkAttributeMap(_figure, _ground, frameType, referencePt, link_type, signal, comment);
+        _featureMap.Add(AnnotationTypes.OLINK, new List<Dictionary<string, object>>() { _attributes });
+        Debug.Log(_featureMap);
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+
+    public Dictionary<string, object> CreateLinkAttributeMap(IsoEntity figure, IsoEntity ground, string link_type, IsoSignal signalID = null, string comment = null)
+    {
+        Dictionary<string, object> map = new Dictionary<string, object>() { { "figure", figure.ID }, { "ground", ground.ID }, { "rel_type", link_type }, { "comment", comment } };
+
+        if (signalID != null)
+            map.Add("trigger", signalID.ID);
+        return map;
+
+    }
+
+    public Dictionary<string, object> CreateOLinkAttributeMap(IsoEntity figure, IsoEntity ground, string frameType, IsoEntity referencePt, string link_type, IsoSignal signalID = null, string comment = null)
+    {
+        Dictionary<string, object> map = new Dictionary<string, object>() { { "figure", figure.ID }, { "ground", ground.ID }, { "frame_type", frameType }, { "rel_type", link_type }, { "comment", comment } };
+        if (referencePt != null)
+            map.Add("reference_pt", referencePt.ID);
+
+        if (signalID != null)
+            map.Add("trigger", signalID.ID);
+
+        return map;
+    }
+
+    public static AnnotationLinkType ExtractLink<AnnotationLinkType>(int id, JsonData data, AnnotationDocument doc, AnnotationLinkType link = null)
+        where AnnotationLinkType : IsoLink
+    {
+        IsoEntity figure = null;
+        if (data.ContainsKey("figure"))
+        {
+            int figureID = int.Parse(data["figure"].ToString());
+            figure = doc.GetElementByID<IsoEntity>(figureID, true);
+
+        }
+        IsoEntity ground = null;
+        if (data.ContainsKey("ground"))
+        {
+            int groundID = int.Parse(data["ground"].ToString());
+            ground = doc.GetElementByID<IsoEntity>(groundID, true);
+        }
+        IsoSignal trigger = null;
+        if (data.ContainsKey("trigger"))
+        {
+            int triggerID;
+            bool success = int.TryParse(data["trigger"].ToString(), out triggerID);
+            trigger = success ? doc.GetElementByID<IsoSignal>(triggerID, true) : null;
+        }
+        string relType = data.ContainsKey("rel_type") ? data["rel_type"].ToString() : null;
+        string comment = data.ContainsKey("comment") ? data["comment"].ToString() : null;
+        string mod = data.ContainsKey("mod") ? data["mod"].ToString() : null;
+
+
+        // O-Link specific attributes
+        #region
+        bool projective = (typeof(AnnotationLinkType).Equals(typeof(IsoOLink)) && data.ContainsKey("projective")) ? bool.Parse(data["projective"].ToString()) : false;
+        string frame_type = (typeof(AnnotationLinkType).Equals(typeof(IsoOLink)) && data.ContainsKey("frame_type")) ? data["frame_type"].ToString() : null;
+        IsoEntity referencePt = null;
+        if (typeof(AnnotationLinkType).Equals(typeof(IsoOLink)) && data.ContainsKey("reference_pt") && !data["reference_pt"].Equals("null"))
+            referencePt = doc.GetElementByID<IsoEntity>(int.Parse(data["reference_pt"].ToString()), true);
+        #endregion
+        if (link != null)
+        {
+            if (data.ContainsKey("figure")) link.SetFigure(figure);
+            if (data.ContainsKey("ground")) link.SetGround(ground);
+            if (data.ContainsKey("trigger")) link.SetTrigger(trigger);
+            if (data.ContainsKey("rel_type")) link.SetRelType(relType);
+            if (data.ContainsKey("comment")) link.SetComment(comment);
+            if (data.ContainsKey("mod")) link.SetMod(mod);
+            if (typeof(AnnotationLinkType).Equals(typeof(IsoOLink)))
+            {
+                if (data.ContainsKey("projective")) ((IsoOLink)Convert.ChangeType(link, typeof(AnnotationLinkType))).SetProjective(projective);
+                if (data.ContainsKey("frame_type")) ((IsoOLink)Convert.ChangeType(link, typeof(AnnotationLinkType))).SetFrameType(frame_type);
+                if (data.ContainsKey("reference_pt")) ((IsoOLink)Convert.ChangeType(link, typeof(AnnotationLinkType))).SetReferencePoint(referencePt);
+            }
+
+        }
+        else
+        {
+            if (typeof(AnnotationLinkType).Equals(typeof(IsoQsLink)))
+                link = (AnnotationLinkType)(object)new IsoQsLink(doc, id, comment, mod, figure, ground, trigger, relType);
+            else if (typeof(AnnotationLinkType).Equals(typeof(IsoOLink)))
+                link = (AnnotationLinkType)(object)new IsoOLink(doc, id, comment, mod, figure, ground, trigger, relType, projective, frame_type, referencePt);
+            else if (typeof(AnnotationLinkType).Equals(typeof(IsoMetaLink)))
+                link = (AnnotationLinkType)(object)new IsoMetaLink(doc, id, comment, mod, figure, ground, trigger, relType);
+            else if (typeof(AnnotationLinkType).Equals(typeof(IsoSrLink)))
+                link = (AnnotationLinkType)(object)new IsoSrLink(doc, id, comment, mod, figure, ground, trigger, relType);
+            else if (typeof(AnnotationLinkType).Equals(typeof(IsoMLink)))
+                link = (AnnotationLinkType)(object)new IsoMLink(doc, id, comment, mod, figure, ground, trigger, relType, null);
+            else
+                link = (AnnotationLinkType)new IsoLink(doc, id, comment, mod, figure, ground, trigger, relType);
+        }
+        return link;
+    }
+    #endregion
+
+    // Signal methods
+    #region
+    public void SendMeasureCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string value, string unit, string comment = null, string mod = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateMeasureAttributeMap(shapeNetID, pos, rot, scale, begin, end, value, unit, comment, mod);
+        _featureMap.Add(AnnotationTypes.MEASURE, new List<Dictionary<string, object>>() { _attributes });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public void SendSRelationCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string type, string cluster, string value, string comment = null, string mod = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateSRelationAttributeMap(shapeNetID, pos, rot, scale, begin, end, type, cluster, value, comment, mod);
+        _featureMap.Add(AnnotationTypes.SRELATION, new List<Dictionary<string, object>>() { _attributes });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateMeasureAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string value, string unit, string comment = null, string mod = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+
+        _attributes.Add("object_id", shapeNetID);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        _attributes.Add("value", value);
+        _attributes.Add("unit", unit);
+        if (end != 0) _attributes.Add("begin", begin);
+        if (end != 0) _attributes.Add("end", end);
+        if (comment != null) _attributes.Add("comment", comment);
+        if (mod != null) _attributes.Add("mod", mod);
+        return _attributes;
+    }
+
+    public Dictionary<string, object> CreateSRelationAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string type, string cluster, string value, string comment = null, string mod = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+
+        _attributes.Add("object_id", shapeNetID);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        _attributes.Add("relation_type", type);
+        _attributes.Add("cluster", cluster);
+        _attributes.Add("value", value);
+        if (end != 0) _attributes.Add("begin", begin);
+        if (end != 0) _attributes.Add("end", end);
+        if (comment != null) _attributes.Add("comment", comment);
+        if (mod != null) _attributes.Add("mod", mod);
+        return _attributes;
+    }
+
+    public Dictionary<string, object> CreateMRelationAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string value, string comment = null, string mod = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+
+        _attributes.Add("object_id", shapeNetID);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        _attributes.Add("value", value);
+        if (end != 0) _attributes.Add("begin", begin);
+        if (end != 0) _attributes.Add("end", end);
+        if (comment != null) _attributes.Add("comment", comment);
+        if (mod != null) _attributes.Add("mod", mod);
+        return _attributes;
+    }
+
+    public static AnnotationSignalType ExtractSignal<AnnotationSignalType>(int id, JsonData data, AnnotationDocument doc, AnnotationSignalType signal = null)
+        where AnnotationSignalType : IsoSignal
+    {
+        int begin = data.ContainsKey("begin") ? int.Parse(data["begin"].ToString()) : 0;
+        int end = data.ContainsKey("end") ? int.Parse(data["end"].ToString()) : 0;
+        string objectID = data.ContainsKey("object_id") ? data["object_id"].ToString() : null;
+
+        IsoVector3 pos = null;
+        if (data.ContainsKey("position") && !data["position"].Equals("null"))
+        {
+            int vecID = int.Parse(data["position"].ToString());
+            pos = doc.GetElementByID<IsoVector3>(vecID, false);
+        }
+
+        IsoVector4 rot = null;
+        if (data.ContainsKey("rotation") && !data["rotation"].Equals("null"))
+        {
+            int vecID = int.Parse(data["rotation"].ToString());
+            rot = doc.GetElementByID<IsoVector4>(vecID, false);
+        }
+
+        IsoVector3 scale = null;
+        if (data.ContainsKey("scale") && !data["scale"].Equals("null"))
+        {
+            int vecID = int.Parse(data["scale"].ToString());
+            scale = doc.GetElementByID<IsoVector3>(vecID, false);
+        }
+
+        List<IsoObjectAttribute> objectFeatures = null;
+        IsoObjectAttribute feature = null;
+        if (data.ContainsKey("object_feature_array") && !data["object_feature_array"].Equals("null"))
+        {
+            foreach (object featureID in data["object_feature_array"])
+            {
+                if (featureID is int) feature = doc.GetElementByID<IsoObjectAttribute>((int)featureID, true);
+                else if (featureID is string) feature = doc.GetElementByID<IsoObjectAttribute>(int.Parse((string)featureID), true);
+                else if (featureID is JsonData) feature = doc.GetElementByID<IsoObjectAttribute>(int.Parse(featureID.ToString()), true);
+                if (feature != null)
+                {
+                    if (objectFeatures == null) objectFeatures = new List<IsoObjectAttribute>();
+                    objectFeatures.Add(feature);
+                }
+            }
+        }
+
+
+        string value = data.ContainsKey("value") ? data["value"].ToString() : null;
+        string unit = data.ContainsKey("unit") ? data["unit"].ToString() : null;
+        string comment = data.ContainsKey("comment") ? data["comment"].ToString() : null;
+        string mod = data.ContainsKey("mod") ? data["mod"].ToString() : null;
+        string cluster = data.ContainsKey("cluster") ? data["cluster"].ToString() : null;
+        string relationType = data.ContainsKey("relation_type") ? data["relation_type"].ToString() : null;
+        string semanticType = data.ContainsKey("semantic_type") ? data["semantic_type"].ToString() : null;
+        string motionSignalType = data.ContainsKey("motion_signal_type") ? data["motion_signal_type"].ToString() : null;
+
+        if (signal != null)
+        {
+            if (data.ContainsKey("begin")) signal.SetBegin(begin);
+            if (data.ContainsKey("end")) signal.SetEnd(end);
+            //if (data.ContainsKey("begin") || data.ContainsKey("end")) signal.TerminateTextReference();
+
+
+            if (data.ContainsKey("object_id")) signal.SetObjectID(objectID);
+            if (pos != null) signal.SetPosition(pos);
+            if (rot != null) signal.SetRotation(rot);
+            if (scale != null) signal.SetScale(scale);
+
+            if (data.ContainsKey("comment")) signal.SetComment(comment);
+            if (data.ContainsKey("mod")) signal.SetMod(mod);
+
+            if (typeof(AnnotationSignalType).Equals(typeof(IsoMeasure)))
+            {
+                if (data.ContainsKey("value")) ((IsoMeasure)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetValue(value);
+                if (data.ContainsKey("unit")) ((IsoMeasure)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetUnit(unit);
+            }
+
+            if (typeof(AnnotationSignalType).Equals(typeof(IsoSRelation)))
+            {
+                if (data.ContainsKey("cluster")) ((IsoSRelation)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetCluster(cluster);
+                if (data.ContainsKey("relationType")) ((IsoSRelation)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetSignalType(relationType);
+                if (data.ContainsKey("value")) ((IsoSRelation)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetValue(value);
+            }
+            if (typeof(AnnotationSignalType).Equals(typeof(IsoMRelation)))
+            {
+                if (data.ContainsKey("value")) ((IsoMRelation)Convert.ChangeType(signal, typeof(AnnotationSignalType))).SetValue(value);
+            }
+        }
+        else
+        {
+            if (typeof(AnnotationSignalType).Equals(typeof(IsoMeasure)))
+                signal = (AnnotationSignalType)(object)new IsoMeasure(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, value, unit);
+            else if (typeof(AnnotationSignalType).Equals(typeof(IsoSRelation)))
+                signal = (AnnotationSignalType)(object)new IsoSRelation(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, relationType, cluster, value);
+            else if (typeof(AnnotationSignalType).Equals(typeof(IsoMRelation)))
+                signal = (AnnotationSignalType)(object)new IsoMRelation(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, value);
+            else
+                signal = (AnnotationSignalType)new IsoSignal(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod);
+        }
+        signal.Actualize3DObject();
+        return signal;
+    }
+    #endregion
+
+    // Event methods
+    #region
+
+    public void SendEventCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string event_frame, string event_type, string comment = null, string mod = null, string domain = null,
+                                         string lat = null, string lon = null, IsoMeasure elevation = null, bool countable = false, string gquant = null, List<IsoEntity> scopes = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateEventAttributeMap(shapeNetID, pos, rot, scale, begin, end, event_frame, event_type, comment, mod, domain, lat, lon, elevation, countable, gquant, scopes, features);
+        _featureMap.Add(AnnotationTypes.EVENT, new List<Dictionary<string, object>>() { _attributes });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public void SendMotionCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string event_frame, string event_type, string comment = null, string mod = null, string domain = null,
+                                         string lat = null, string lon = null, IsoMeasure elevation = null, bool countable = false, string gquant = null, List<IsoEntity> scopes = null,
+                                         string motion_type = null, string motion_class = null, string motion_sense = null, string manner = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        Dictionary<string, object> _attributes = CreateMotionAttributeMap(shapeNetID, pos, rot, scale, begin, end, event_frame, event_type, comment, mod, domain, lat, lon, elevation, countable, gquant, scopes, motion_type, motion_class, motion_sense, manner);
+        _featureMap.Add(AnnotationTypes.MOTION, new List<Dictionary<string, object>>() { _attributes });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateEventAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string event_frame, string event_type, string comment = null, string mod = null, string domain = null,
+                                         string lat = null, string lon = null, IsoMeasure elevation = null, bool countable = false, string gquant = null, List<IsoEntity> scopes = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        if (end != 0) _attributes.Add("begin", begin);
+        if (end != 0) _attributes.Add("end", end);
+
+
+
+        _attributes.Add("object_id", shapeNetID);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        if (event_frame != null) _attributes.Add("event_frame", event_frame);
+        if (event_type != null) _attributes.Add("event_type", event_type);
+        if (comment != null) _attributes.Add("comment", comment);
+        if (mod != null) _attributes.Add("mod", mod);
+        // domain
+        if (domain != null) _attributes.Add("domain", domain);
+
+        // latitude
+        if (lat != null) _attributes.Add("lat", lat);
+
+        // longitude
+        if (lon != null) _attributes.Add("long", lon);
+
+        // elevation
+        if (elevation != null) _attributes.Add("elevation", "" + elevation.ID);
+
+        // countable
+        _attributes.Add("countable", countable);
+
+        //gquant
+        if (gquant != null) _attributes.Add("gquant", gquant);
+
+        // scopes
+        #region
+        if (scopes != null)
+        {
+            JsonData scopeData = new JsonData();
+            foreach (IsoEntity scope in scopes)
+                scopeData.Add("" + scope.ID);
+            if (scopeData.Count > 0) _attributes.Add("scopes_array", scopeData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public Dictionary<string, object> CreateMotionAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string event_frame, string event_type, string comment = null, string mod = null, string domain = null,
+                                         string lat = null, string lon = null, IsoMeasure elevation = null, bool countable = false, string gquant = null, List<IsoEntity> scopes = null,
+                                         string motion_type = null, string motion_class = null, string motion_sense = null, string manner = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = CreateEventAttributeMap(shapeNetID, pos, rot, scale, begin, end, event_frame, event_type, comment, mod, domain, lat, lon, elevation, countable, gquant, scopes, features);
+
+
+        if (motion_type != null) _attributes.Add("motion_type", motion_type);
+        if (motion_class != null) _attributes.Add("motion_class", motion_class);
+        if (motion_sense != null) _attributes.Add("motion_sense", motion_sense);
+        if (manner != null) _attributes.Add("manner", manner);
+        return _attributes;
+    }
+
+    public Dictionary<string, object> CreateNonMotionAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin, int end, string event_frame, string event_type, string comment = null, string mod = null, string domain = null,
+                                     string lat = null, string lon = null, IsoMeasure elevation = null, bool countable = false, string gquant = null, List<IsoEntity> scopes = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = CreateEventAttributeMap(shapeNetID, pos, rot, scale, begin, end, event_frame, event_type, comment, mod, domain, lat, lon, elevation, countable, gquant, scopes, features);
+
+
+
+
+        return _attributes;
+    }
+
+
+
+    public static AnnotationEventType ExtractEvent<AnnotationEventType>(int id, JsonData data, AnnotationDocument doc, AnnotationEventType aEvent = null)
+        where AnnotationEventType : IsoEvent
+    {
+        int begin = data.ContainsKey("begin") ? int.Parse(data["begin"].ToString()) : 0;
+        int end = data.ContainsKey("end") ? int.Parse(data["end"].ToString()) : 0;
+
+        string comment = data.ContainsKey("comment") ? data["comment"].ToString() : null;
+        string mod = data.ContainsKey("mod") ? data["mod"].ToString() : null;
+
+        string event_frame = data.ContainsKey("event_frame") ? data["event_frame"].ToString() : null;
+        string event_type = data.ContainsKey("event_type") ? data["event_type"].ToString() : null;
+        string domain = data.ContainsKey("domain") ? data["domain"].ToString() : null;
+        string lat = data.ContainsKey("lat") ? data["lat"].ToString() : null;
+        string lon = data.ContainsKey("long") ? data["long"].ToString() : null;
+
+        IsoMeasure elevation = null;
+        if (data.ContainsKey("elevation") && !data["elevation"].Equals("null"))
+            elevation = doc.GetElementByID<IsoMeasure>(int.Parse(data["elevation"].ToString()), false);
+        bool countable = data.ContainsKey("countable") ? bool.Parse(data["countable"].ToString()) : false;
+        string gquant = data.ContainsKey("gquant") ? data["gquant"].ToString() : null;
+        List<IsoEntity> scopes = null;
+        IsoEntity scope = null;
+        if (data.ContainsKey("scopes_array") && !data["scopes_array"].Equals("null"))
+        {
+            foreach (object scopeID in data["scopes_array"])
+            {
+                if (scopeID is int) scope = doc.GetElementByID<IsoEntity>((int)scopeID, true);
+                else if (scopeID is string) scope = doc.GetElementByID<IsoEntity>(int.Parse((string)scopeID), true);
+                else if (scopeID is JsonData) scope = doc.GetElementByID<IsoEntity>(int.Parse(scopeID.ToString()), true);
+                if (scope != null)
+                {
+                    if (scopes == null) scopes = new List<IsoEntity>();
+                    scopes.Add(scope);
+                }
+            }
+        }
+
+
+        string objectID = data.ContainsKey("object_id") ? data["object_id"].ToString() : null;
+        IsoVector3 pos = null;
+        if (data.ContainsKey("position") && !data["position"].Equals("null"))
+        {
+            int vecID = int.Parse(data["position"].ToString());
+            pos = doc.GetElementByID<IsoVector3>(vecID, false);
+        }
+        IsoVector4 rot = null;
+        if (data.ContainsKey("rotation") && !data["rotation"].Equals("null"))
+        {
+            int vecID = int.Parse(data["rotation"].ToString());
+            rot = doc.GetElementByID<IsoVector4>(vecID, false);
+        }
+
+        IsoVector3 scale = null;
+        if (data.ContainsKey("scale") && !data["scale"].Equals("null"))
+        {
+            int vecID = int.Parse(data["scale"].ToString());
+            scale = doc.GetElementByID<IsoVector3>(vecID, false);
+        }
+
+
+        List<IsoObjectAttribute> objectFeatures = null;
+        IsoObjectAttribute feature = null;
+        if (data.ContainsKey("object_feature_array") && !data["object_feature_array"].Equals("null"))
+        {
+            foreach (object featureID in data["object_feature_array"])
+            {
+                if (featureID is int) feature = doc.GetElementByID<IsoObjectAttribute>((int)featureID, true);
+                else if (featureID is string) feature = doc.GetElementByID<IsoObjectAttribute>(int.Parse((string)featureID), true);
+                else if (featureID is JsonData) feature = doc.GetElementByID<IsoObjectAttribute>(int.Parse(featureID.ToString()), true);
+                if (feature != null)
+                {
+                    if (objectFeatures == null) objectFeatures = new List<IsoObjectAttribute>();
+                    objectFeatures.Add(feature);
+                }
+            }
+        }
+
+        string motion_type = data.ContainsKey("motion_type") ? data["motion_type"].ToString() : null;
+        string motion_class = data.ContainsKey("motion_class") ? data["motion_class"].ToString() : null;
+        string motion_sense = data.ContainsKey("motion_sense") ? data["motion_sense"].ToString() : null;
+
+        IsoSRelation manner = null;
+        if (data.ContainsKey("manner") && !data["manner"].Equals("null"))
+            manner = doc.GetElementByID<IsoSRelation>(int.Parse(data["manner"].ToString()), true);
+
+        IsoSpatialEntity motion_goal = null;
+        if (data.ContainsKey("motion_goal") && !data["motion_goal"].Equals("null"))
+            motion_goal = doc.GetElementByID<IsoSpatialEntity>(int.Parse(data["motion_goal"].ToString()), true);
+        //string manner = data.ContainsKey("manner") ? data["manner"].ToString() : null;
+
+        if (aEvent != null)
+        {
+            if (data.ContainsKey("begin")) aEvent.SetBegin(begin);
+            if (data.ContainsKey("end")) aEvent.SetEnd(end);
+            //if (data.ContainsKey("begin") || data.ContainsKey("end")) aEvent.TerminateTextReference();
+
+            if (data.ContainsKey("comment")) aEvent.SetComment(comment);
+            if (data.ContainsKey("mod")) aEvent.SetMod(mod);
+
+            if (data.ContainsKey("event_frame")) aEvent.SetEventFrame(event_frame);
+            if (data.ContainsKey("event_type")) aEvent.SetEventType(event_type);
+            if (data.ContainsKey("domain")) aEvent.SetDomain(domain);
+            if (data.ContainsKey("lat")) aEvent.SetLatitude(lat);
+            if (data.ContainsKey("long")) aEvent.SetLongitude(lon);
+            if (data.ContainsKey("elevation")) aEvent.SetElevation(elevation);
+            if (data.ContainsKey("countable")) aEvent.SetCountable(countable);
+            if (data.ContainsKey("gquant")) aEvent.SetGQuant(gquant);
+            if (data.ContainsKey("scopes_array")) aEvent.SetScopes(scopes);
+
+            if (data.ContainsKey("object_id")) aEvent.SetObjectID(objectID);
+            if (pos != null) aEvent.SetPosition(pos);
+            if (rot != null) aEvent.SetRotation(rot);
+            if (scale != null) aEvent.SetScale(scale);
+            if (data.ContainsKey("object_feature_array")) aEvent.SetFeatures(objectFeatures);
+
+            if (typeof(AnnotationEventType).Equals(typeof(IsoMotion)))
+            {
+                if (data.ContainsKey("motion_type")) ((IsoMotion)Convert.ChangeType(aEvent, typeof(AnnotationEventType))).SetMotionType(motion_type);
+                if (data.ContainsKey("motion_class")) ((IsoMotion)Convert.ChangeType(aEvent, typeof(AnnotationEventType))).SetMotionClass(motion_class);
+                if (data.ContainsKey("motion_sense")) ((IsoMotion)Convert.ChangeType(aEvent, typeof(AnnotationEventType))).SetMotionSense(motion_sense);
+                if (data.ContainsKey("manner")) ((IsoMotion)Convert.ChangeType(aEvent, typeof(AnnotationEventType))).SetManner(manner);
+                if (data.ContainsKey("motion_goal")) ((IsoMotion)Convert.ChangeType(aEvent, typeof(AnnotationEventType))).SetGoal(motion_goal);
+            }
+            aEvent.Actualize3DObject();
+        }
+        else
+        {
+            if (typeof(AnnotationEventType).Equals(typeof(IsoMotion)))
+                aEvent = (AnnotationEventType)(object)new IsoMotion(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, event_frame, event_type, domain, lat, lon, elevation, countable, gquant, scopes, motion_type, motion_class, motion_sense, manner, motion_goal);
+            else if (typeof(AnnotationEventType).Equals(typeof(IsoNonMotionEvent)))
+                aEvent = (AnnotationEventType)(object)new IsoNonMotionEvent(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, event_frame, event_type, domain, lat, lon, elevation, countable, gquant, scopes);
+            else
+                aEvent = (AnnotationEventType)new IsoEvent(doc, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, event_frame, event_type, domain, lat, lon, elevation, countable, gquant, scopes);
+        }
+        return aEvent;
+    }
+    #endregion
+
+    // Spatial entity methods
+    #region
+    public Dictionary<string, object> CreateSpatialEntityAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                                                      string entity_type = null, DT dim = DT.none, FT form = FT.none, bool dcl = false, string domain = null, string lat = null, string longi = null,
+                                                                      IsoMeasure elevation = null, bool countable = false, string gquant = null, IEnumerable<IsoEntity> scopes = null, IEnumerable<IsoObjectAttribute> features = null, List<Dictionary<string, object>> featureMap = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        // object_id
+        _attributes.Add("object_id", shapeNetID);
+
+        // begin
+        if (end != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        // comment
+        if (comment != null) _attributes.Add("comment", comment);
+
+        // mod
+        if (mod != null) _attributes.Add("mod", mod);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // spatial entity type
+        if (entity_type != null) _attributes.Add("spatial_entitiy_type", entity_type);
+
+        // dimensionality
+        if (dim != DT.none) _attributes.Add("dimensionality", dim.ToString());
+
+        // form
+        if (form != FT.none) _attributes.Add("form", form.ToString());
+
+        // dcl
+        _attributes.Add("dcl", dcl);
+
+        // domain
+        if (domain != null) _attributes.Add("domain", domain);
+
+        // latitude
+        if (lat != null) _attributes.Add("lat", lat);
+
+        // longitude
+        if (longi != null) _attributes.Add("long", longi);
+
+        // elevation
+        if (elevation != null) _attributes.Add("elevation", "" + elevation.ID);
+
+        // countable
+        _attributes.Add("countable", countable);
+
+        //gquant
+        if (gquant != null) _attributes.Add("gquant", gquant);
+
+        // scopes
+        #region
+        if (scopes != null)
+        {
+            JsonData scopeData = new JsonData();
+            foreach (IsoEntity scope in scopes)
+                scopeData.Add("" + scope.ID);
+            if (scopeData.Count > 0) _attributes.Add("scopes_array", scopeData);
+        }
+        #endregion
+
+        // object features
+        #region
+        JsonData featureData = new JsonData();
+        if (features != null)
+        {
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+        }
+        #endregion
+
+        // object feature array
+        #region
+        JsonData featureArrayData = new JsonData();
+
+        if (featureMap != null)
+        {
+            foreach (Dictionary<string, object> feature in featureMap)
+            {
+                foreach (string featureKey in feature.Keys)
+                {
+                    featureBatch = new JsonData();
+                    featureFeatureBatch = new JsonData();
+                    featureFeatureBatch["key"] = featureKey;
+
+                    if (feature[featureKey] is JsonData)
+                        featureFeatureBatch["value"] = (JsonData)feature[featureKey];
+                    else if (feature[featureKey] is int)
+                        featureFeatureBatch["value"] = (int)feature[featureKey];
+                    else if (feature[featureKey] is string)
+                        featureFeatureBatch["value"] = (string)feature[featureKey];
+                    else if (feature[featureKey] is double)
+                        featureFeatureBatch["value"] = (double)feature[featureKey];
+                    else if (feature[featureKey] is float)
+                        featureFeatureBatch["value"] = (float)feature[featureKey];
+
+                    featureBatch["_type"] = AnnotationTypes.OBJECT_ATTRIBUTE;
+                    featureBatch["features"] = featureFeatureBatch;
+                }
+                featureArrayData.Add(featureBatch);
+            }
+            if (featureArrayData.Count > 0) _attributes.Add("object_feature_array", featureArrayData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public void SendSpatialEnityCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                    string entity_type = null, DT dim = DT.none, FT form = FT.none, bool dcl = false, string domain = null, string lat = null, string longi = null,
+                                    IsoMeasure elevation = null, bool countable = false, string gquant = null, IEnumerable<IsoEntity> scopes = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.SPATIAL_ENTITY, new List<Dictionary<string, object>>() { CreateSpatialEntityAttributeMap(shapeNetID, pos, rot, scale, begin, end, comment, mod, entity_type, dim,
+                                                                                                                                 form, dcl, domain, lat, longi, elevation, countable, gquant, scopes, features) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateLocationPathAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                                                     string gazref = null, IsoEntity beginID = null, IsoEntity endID = null, IEnumerable<IsoEntity> mids = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        // object_id
+        _attributes.Add("object_id", shapeNetID);
+
+        // begin
+        if (end != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        // comment
+        if (comment != null) _attributes.Add("comment", comment);
+
+        // mod
+        if (mod != null) _attributes.Add("mod", mod);
+
+        // gazref
+        if (gazref != null) _attributes.Add("gazref", gazref);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // begin entity
+        if (beginID != null) _attributes.Add("beginID", (int)beginID.ID);
+
+        // end entity
+        if (endID != null) _attributes.Add("endID", (int)endID.ID);
+
+        // middle entities
+        #region
+        if (mids != null)
+        {
+            JsonData midJSON = new JsonData();
+            foreach (IsoEntity mid in mids)
+                midJSON.Add("" + mid.ID);
+            if (midJSON.Count > 0) _attributes.Add("midID_array", midJSON);
+        }
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public void SendLocationPathCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                    string gazref = null, IsoEntity startID = null, IsoEntity endID = null, IEnumerable<IsoEntity> mids = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.PATH, new List<Dictionary<string, object>>() { CreateLocationPathAttributeMap(shapeNetID, pos, rot, scale, begin, end, comment, mod, gazref, startID, endID, mids, features) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateLocationPlaceAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                    string gazref = null, string country = null, string state = null, string ctv = null, string continent = null, string county = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        // object_id
+        _attributes.Add("object_id", shapeNetID);
+
+        // begin
+        if (end != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        // comment
+        if (comment != null) _attributes.Add("comment", comment);
+
+        // mod
+        if (mod != null) _attributes.Add("mod", mod);
+
+        // gazref
+        if (gazref != null) _attributes.Add("gazref", gazref);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // country
+        if (country != null) _attributes.Add("country", country);
+
+        // state
+        if (state != null) _attributes.Add("state", state);
+
+        // state
+        if (ctv != null) _attributes.Add("ctv", ctv);
+
+        // state
+        if (continent != null) _attributes.Add("continent", continent);
+
+        // state
+        if (county != null) _attributes.Add("county", county);
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public Dictionary<string, object> CreateLocationAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                string gazref = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        // object_id
+        _attributes.Add("object_id", shapeNetID);
+
+        // begin
+        if (end != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        // comment
+        if (comment != null) _attributes.Add("comment", comment);
+
+        // mod
+        if (mod != null) _attributes.Add("mod", mod);
+
+        // gazref
+        if (gazref != null) _attributes.Add("gazref", gazref);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public void SendLocationPlaceCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                                 string gazref = null, string country = null, string state = null, string ctv = null, string continent = null, string county = null, IEnumerable<IsoObjectAttribute> features = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.PLACE, new List<Dictionary<string, object>>() { CreateLocationPlaceAttributeMap(shapeNetID, pos, rot, scale, begin, end, comment, mod, gazref, country, state, ctv, continent, county, features) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateEventPathAttributeMap(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                                                  string gazref = null, IsoEntity startID = null, IsoEntity endID = null, IEnumerable<IsoEntity> mids = null, IEnumerable<IsoObjectAttribute> features = null,
+                                                                  IsoMotion trigger = null, List<IsoSRelation> spatial_relator = null)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+
+        // object_id
+        _attributes.Add("object_id", shapeNetID);
+
+        // begin
+        if (end != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        // comment
+        if (comment != null) _attributes.Add("comment", comment);
+
+        // mod
+        if (mod != null) _attributes.Add("mod", mod);
+
+        // gazref
+        if (gazref != null) _attributes.Add("gazref", gazref);
+
+        // position
+        #region
+        JsonData position = new JsonData();
+        position["_type"] = AnnotationTypes.VEC3;
+        JsonData posMapJSON = new JsonData();
+        posMapJSON["x"] = pos.x;
+        posMapJSON["y"] = pos.y;
+        posMapJSON["z"] = pos.z;
+        position["features"] = posMapJSON;
+        _attributes.Add("position", position);
+        #endregion
+
+        // rotation
+        #region
+        JsonData rotation = new JsonData();
+        rotation["_type"] = AnnotationTypes.VEC4;
+        JsonData rotMapJSON = new JsonData();
+        rotMapJSON["x"] = rot.x;
+        rotMapJSON["y"] = rot.y;
+        rotMapJSON["z"] = rot.z;
+        rotMapJSON["w"] = rot.w;
+        rotation["features"] = rotMapJSON;
+        _attributes.Add("rotation", rotation);
+        #endregion
+
+        // scale
+        #region
+        JsonData scaleVector = new JsonData();
+        scaleVector["_type"] = AnnotationTypes.VEC3;
+        JsonData scaleMapJSON = new JsonData();
+        scaleMapJSON["x"] = scale.x;
+        scaleMapJSON["y"] = scale.y;
+        scaleMapJSON["z"] = scale.z;
+        scaleVector["features"] = scaleMapJSON;
+        _attributes.Add("scale", scaleVector);
+        #endregion
+
+        // begin entity
+        if (startID != null) _attributes.Add("startID", (int)startID.ID);
+
+        // end entity
+        if (endID != null) _attributes.Add("endID", (int)endID.ID);
+
+        // middle entities
+
+        #region
+        /*
+        if (mids != null)
+        {
+            JsonData midJSON = new JsonData();
+            foreach (IsoEntity mid in mids)
+                midJSON.Add("" + mid.ID);
+            if (midJSON.Count > 0) _attributes.Add("midID_array", midJSON);
+        }*/
+        #endregion
+
+        // trigger
+        if (trigger != null) _attributes.Add("trigger", (int)trigger.ID);
+
+        // spatial relator
+        if (spatial_relator != null)
+        {
+            JsonData spatialRelator = new JsonData();
+            foreach (IsoSRelation relator in spatial_relator)
+                spatialRelator.Add("" + relator.ID);
+            if (spatialRelator.Count > 0) _attributes.Add("spatial_relator_array", spatialRelator);
+        }
+
+        // object features
+        #region
+        if (features != null)
+        {
+            JsonData featureData = new JsonData();
+            foreach (IsoObjectAttribute feature in features)
+                featureData.Add("" + feature.ID);
+            if (featureData.Count > 0) _attributes.Add("object_feature_array", featureData);
+        }
+        #endregion
+
+        return _attributes;
+    }
+
+    public void SendEventPathCreatingRequest(string shapeNetID, Vector3 pos, Quaternion rot, Vector3 scale, int begin = 0, int end = 0, string comment = null, string mod = null,
+                                             string gazref = null, IsoEntity beginID = null, IsoEntity endID = null, IEnumerable<IsoEntity> mids = null, IEnumerable<IsoObjectAttribute> features = null,
+                                             IsoMotion trigger = null, List<IsoSRelation> spatial_relator = null)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.EVENT_PATH, new List<Dictionary<string, object>>() { CreateEventPathAttributeMap(shapeNetID, pos, rot, scale, begin, end, comment, mod, gazref, beginID, endID, mids, features, trigger, spatial_relator) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public static SpatialEntityType ExtractSpatialEntity<SpatialEntityType>(int id, JsonData data, AnnotationDocument document, SpatialEntityType entity = null)
+        where SpatialEntityType : IsoSpatialEntity
+    {
+        List<string> keylist = new List<string>();
+        foreach (string k in data.Keys)
+            keylist.Add(k);
+
+        foreach (string k in keylist)
+        {
+            if (data[k].ToString() == "null" || data[k] == null)
+            {
+                data.Remove(k);
+            }
+        }
+        #region
+        string objectID = data.ContainsKey("object_id") ? data["object_id"].ToString() : null;
+        int begin = data.ContainsKey("begin") ? int.Parse(data["begin"].ToString()) : 0;
+        int end = data.ContainsKey("end") ? int.Parse(data["end"].ToString()) : 0;
+        IsoVector3 pos = null;
+        if (data.ContainsKey("position") && !data["position"].Equals("null"))
+        {
+            if (!data["position"].Equals("null"))
+            {
+                int vecID = int.Parse(data["position"].ToString());
+                pos = document.GetElementByID<IsoVector3>(vecID, false);
+            }
+        }
+        IsoVector4 rot = null;
+        if (data.ContainsKey("rotation") && !data["rotation"].Equals("null"))
+        {
+            if (!data["rotation"].Equals("null"))
+            {
+                int vecID = int.Parse(data["rotation"].ToString());
+                rot = document.GetElementByID<IsoVector4>(vecID, false);
+            }
+        }
+
+        IsoVector3 scale = null;
+        if (data.ContainsKey("scale") && !data["scale"].Equals("null"))
+        {
+            if (!data["scale"].Equals("null"))
+            {
+                int vecID = int.Parse(data["scale"].ToString());
+                scale = document.GetElementByID<IsoVector3>(vecID, false);
+            }
+        }
+
+        string comment = data.ContainsKey("comment") ? data["comment"].ToString() : null;
+        string mod = data.ContainsKey("mod") ? data["mod"].ToString() : null;
+
+        string spatialEntityType = data.ContainsKey("spatial_entitiy_type") ? data["spatial_entitiy_type"].ToString() : null;
+
+        DT dim = DT.none;
+        if (data.ContainsKey("dimensionality")) Enum.TryParse(data["dimensionality"].ToString(), out dim);
+
+        FT form = FT.none;
+        if (data.ContainsKey("form")) Enum.TryParse(data["form"].ToString(), out form);
+        bool dcl = data.ContainsKey("dcl") && !data["dcl"].Equals("null") ? bool.Parse(data["dcl"].ToString()) : false;
+        string domain = data.ContainsKey("domain") ? data["domain"].ToString() : null;
+        string lat = data.ContainsKey("lat") ? data["lat"].ToString() : null;
+        string lon = data.ContainsKey("long") ? data["long"].ToString() : null;
+
+        IsoMeasure elevation = null;
+        if (data.ContainsKey("elevation") && !data["elevation"].Equals("null"))
+            elevation = document.GetElementByID<IsoMeasure>(int.Parse(data["elevation"].ToString()), false);
+        bool countable = data.ContainsKey("countable") && !data["countable"].Equals("null") ? bool.Parse(data["countable"].ToString()) : false;
+        string gquant = data.ContainsKey("gquant") ? data["gquant"].ToString() : null;
+        List<IsoEntity> scopes = null;
+        IsoEntity scope = null;
+        if (data.ContainsKey("scopes_array") && !data["scopes_array"].Equals("null"))
+        {
+            foreach (object scopeID in data["scopes_array"])
+            {
+                if (scopeID is int) scope = document.GetElementByID<IsoEntity>((int)scopeID, true);
+                else if (scopeID is string) scope = document.GetElementByID<IsoEntity>(int.Parse((string)scopeID), true);
+                else if (scopeID is JsonData) scope = document.GetElementByID<IsoEntity>(int.Parse(scopeID.ToString()), true);
+                if (scope != null)
+                {
+                    if (scopes == null) scopes = new List<IsoEntity>();
+                    scopes.Add(scope);
+                }
+            }
+        }
+
+        List<IsoObjectAttribute> objectFeatures = null;
+        IsoObjectAttribute feature = null;
+        if (data.ContainsKey("object_feature_array") && !data["object_feature_array"].Equals("null"))
+        {
+            foreach (object featureID in data["object_feature_array"])
+            {
+                if (featureID is int) feature = document.GetElementByID<IsoObjectAttribute>((int)featureID, true);
+                else if (featureID is string) feature = document.GetElementByID<IsoObjectAttribute>(int.Parse((string)featureID), true);
+                else if (featureID is JsonData) feature = document.GetElementByID<IsoObjectAttribute>(int.Parse(featureID.ToString()), true);
+                if (feature != null)
+                {
+                    if (objectFeatures == null) objectFeatures = new List<IsoObjectAttribute>();
+                    objectFeatures.Add(feature);
+                }
+            }
+        }
+        #endregion
+
+        // get the location-specific attribute gazref if the spatial entity type is IsoLocation
+        #region
+        string gazref = (typeof(SpatialEntityType).Equals(typeof(IsoLocation)) && data.ContainsKey("gazref")) ? data["gazref"].ToString() : null;
+        #endregion
+        // get the event-path / location-path-specific attributes beginID, MidIDs & endID if the spatial entity type is IsoLocationPath or IsoEventPath
+        #region
+        IsoEntity startID = null;
+        if (typeof(SpatialEntityType).Equals(typeof(IsoEventPath)) && data.ContainsKey("startID") && !data["startID"].Equals("null"))
+            startID = document.GetElementByID<IsoEntity>(int.Parse(data["startID"].ToString()), true);
+        if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPath)) && data.ContainsKey("beginID") && !data["beginID"].Equals("null"))
+            startID = document.GetElementByID<IsoEntity>(int.Parse(data["beginID"].ToString()), true);
+        IsoEntity endID = null;
+        if ((typeof(SpatialEntityType).Equals(typeof(IsoLocationPath)) || typeof(SpatialEntityType).Equals(typeof(IsoEventPath))) &&
+            data.ContainsKey("endID") && !data["endID"].Equals("null"))
+            endID = document.GetElementByID<IsoEntity>(int.Parse(data["endID"].ToString()), true);
+        List<IsoEntity> midIDs = null;
+        IsoEntity midObject = null;
+        if ((typeof(SpatialEntityType).Equals(typeof(IsoLocationPath)) || typeof(SpatialEntityType).Equals(typeof(IsoEventPath))) && data.ContainsKey("midID_array") && !data["midID_array"].Equals("null"))
+        {
+            foreach (object midId in data["midID_array"])
+            {
+                if (midId is int) midObject = document.GetElementByID<IsoEntity>((int)midId, true);
+                else if (midId is string) midObject = document.GetElementByID<IsoEntity>(int.Parse((string)midId), true);
+                else if (midId is JsonData) midObject = document.GetElementByID<IsoEntity>(int.Parse(midId.ToString()), true);
+                if (midObject != null)
+                {
+                    if (midIDs == null) midIDs = new List<IsoEntity>();
+                    midIDs.Add(midObject);
+                }
+            }
+        }
+        #endregion
+
+        // get all place-specific attributes
+        #region
+        string country = (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)) && data.ContainsKey("country")) ? data["country"].ToString() : null;
+        string state = (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)) && data.ContainsKey("state")) ? data["state"].ToString() : null;
+        CTV ctv = CTV.none;
+        if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)) && data.ContainsKey("ctv")) Enum.TryParse(data["ctv"].ToString(), out ctv);
+        CT continent = CT.NONE;
+        if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)) && data.ContainsKey("continent")) Enum.TryParse(data["continent"].ToString(), out continent);
+        string county = (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)) && data.ContainsKey("county")) ? data["county"].ToString() : null;
+        #endregion
+
+        // get all event-path-specific attributes
+        #region
+        IsoMotion trigger = null;
+        if (typeof(SpatialEntityType).Equals(typeof(IsoEventPath)) && data.ContainsKey("trigger") && !data["trigger"].Equals("null"))
+            trigger = document.GetElementByID<IsoMotion>(int.Parse(data["trigger"].ToString()), false);
+
+        List<IsoSRelation> spatialRelators = null;
+        IsoSRelation spatialRelator = null;
+        if (typeof(SpatialEntityType).Equals(typeof(IsoEventPath)) && data.ContainsKey("spatial_relator_array") && !data["spatial_relator_array"].Equals("null"))
+        {
+            foreach (object spatialSignalID in data["spatial_relator_array"])
+            {
+                if (spatialSignalID is int) spatialRelator = document.GetElementByID<IsoSRelation>((int)spatialSignalID, false);
+                else if (spatialSignalID is string) spatialRelator = document.GetElementByID<IsoSRelation>(int.Parse((string)spatialSignalID), false);
+                else if (spatialSignalID is JsonData) spatialRelator = document.GetElementByID<IsoSRelation>(int.Parse(spatialSignalID.ToString()), false);
+                if (spatialRelator != null)
+                {
+                    if (spatialRelators == null) spatialRelators = new List<IsoSRelation>();
+                    spatialRelators.Add(spatialRelator);
+                }
+            }
+        }
+        #endregion
+        // if the entity already exists update it, else create a new one
+        if (entity != null)
+        {
+            // here the attributes should be only changed, if they are included in the update batch
+            if (data.ContainsKey("begin")) entity.SetBegin(begin);
+            if (data.ContainsKey("end")) entity.SetEnd(end);
+            //if (data.ContainsKey("begin") || data.ContainsKey("end")) entity.TerminateTextReference();
+            if (data.ContainsKey("object_id")) entity.SetObjectID(objectID);
+            if (pos != null) entity.SetPosition(pos);
+            if (rot != null) entity.SetRotation(rot);
+            if (scale != null) entity.SetScale(scale);
+            if (data.ContainsKey("comment")) entity.SetComment(comment);
+            if (data.ContainsKey("mod")) entity.SetMod(mod);
+            if (data.ContainsKey("spatial_entitiy_type")) entity.SetSpatialEntityType(spatialEntityType);
+            if (data.ContainsKey("dimensionality")) entity.SetDimensionality(dim);
+            if (data.ContainsKey("form")) entity.SetForm(form);
+            if (data.ContainsKey("dcl")) entity.SetDcl(dcl);
+            if (data.ContainsKey("domain")) entity.SetDomain(domain);
+            if (data.ContainsKey("lat")) entity.SetLat(lat);
+            if (data.ContainsKey("long")) entity.SetLongitude(lon);
+            if (data.ContainsKey("elevation")) entity.SetElevation(elevation);
+            if (data.ContainsKey("countable")) entity.SetCountable(countable);
+            if (data.ContainsKey("gquant")) entity.SetGQuant(gquant);
+            if (data.ContainsKey("scopes_array")) entity.SetScopes(scopes);
+            if (data.ContainsKey("object_feature_array")) entity.SetFeatures(objectFeatures);
+
+
+            if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPath)))
+            {
+                if (data.ContainsKey("beginID")) ((IsoLocationPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetStartID(startID);
+                if (data.ContainsKey("endID")) ((IsoLocationPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetEndID(endID);
+                if (data.ContainsKey("midID_array")) ((IsoLocationPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetMidIDs(midIDs);
+            }
+
+            //TODO IConvertible Attila!!!!
+            //if (typeof(SpatialEntityType).Equals(typeof(IsoLocation)))
+            //{
+            //    if (data.ContainsKey("gazref")) ((IsoLocation)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetGazref(gazref); 
+            //}
+            if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)))
+            {
+                if (data.ContainsKey("gazref")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetGazref(gazref);
+                if (data.ContainsKey("country")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetCountry(country);
+                if (data.ContainsKey("state")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetState(state);
+                if (data.ContainsKey("ctv")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetCtv(ctv);
+                if (data.ContainsKey("continent")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetContinent(continent);
+                if (data.ContainsKey("county")) ((IsoLocationPlace)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetCounty(county);
+            }
+
+            if (typeof(SpatialEntityType).Equals(typeof(IsoEventPath)))
+            {
+                if (data.ContainsKey("startID")) ((IsoEventPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetStartID(startID);
+                if (data.ContainsKey("endID")) ((IsoEventPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetEndID(endID);
+                if (data.ContainsKey("midID_array")) ((IsoEventPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetMidIDs(midIDs);
+                if (data.ContainsKey("trigger")) ((IsoEventPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetTrigger(trigger);
+                if (data.ContainsKey("spatial_relator_array")) ((IsoEventPath)Convert.ChangeType(entity, typeof(SpatialEntityType))).SetSpatialRelator(spatialRelators);
+            }
+            entity.Actualize3DObject();
+        }
+        else
+        {
+            if (typeof(SpatialEntityType).Equals(typeof(IsoEventPath)))
+                entity = (SpatialEntityType)(object)new IsoEventPath(document, id, begin, end, comment, mod, objectID, pos, rot, scale, objectFeatures, gazref, trigger, startID, midIDs, endID, spatialRelators);
+            else if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPath)))
+                entity = (SpatialEntityType)(object)new IsoLocationPath(document, id, begin, end, comment, mod, objectID, pos, rot, scale, objectFeatures, gazref, startID, endID, midIDs);
+            else if (typeof(SpatialEntityType).Equals(typeof(IsoLocationPlace)))
+                entity = (SpatialEntityType)(object)new IsoLocationPlace(document, id, begin, end, comment, mod, objectID, pos, rot, scale, objectFeatures, gazref, country, state, ctv, continent, county);
+            else if (typeof(SpatialEntityType).Equals(typeof(IsoLocation)))
+                entity = (SpatialEntityType)(object)new IsoLocation(document, id, begin, end, comment, mod, objectID, pos, rot, scale, objectFeatures, gazref);
+            else
+                entity = (SpatialEntityType)new IsoSpatialEntity(document, id, begin, end, objectID, pos, rot, scale, objectFeatures, comment, mod, spatialEntityType,
+                                                                 dim, form, dcl, domain, lat, lon, elevation, countable, gquant, scopes);
+        }
+        return entity;
+    }
+    #endregion
+
+    // quick tree node methods
+    #region
+    public Dictionary<string, object> CreateQuickTreeNodeAttributeMap(int begin, int end, out JsonData childrenObjects)
+    {
+        HashSet<QuickTreeNode> childNodes = new HashSet<QuickTreeNode>(ActualDocument.Document.GetElementsOfTypeInRange<QuickTreeNode>(begin, end, false));
+        childrenObjects = new JsonData();
+        foreach (QuickTreeNode node in childNodes)
+            childrenObjects.Add("" + node.ID);
+        return new Dictionary<string, object>() { { "begin", begin }, { "end", end }, { "children", childrenObjects } };
+    }
+
+    public void SendQuickTreeNodeCreatingRequest(int begin, int end)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        JsonData childrenObjects;
+        _featureMap.Add(AnnotationTypes.QUICK_TREE_NODE, new List<Dictionary<string, object>>() { CreateQuickTreeNodeAttributeMap(begin, end, out childrenObjects) });
+        FireWorkBatchCommand(null, _featureMap, null, childrenObjects);
+    }
+
+    public QuickTreeNode ExtractQuickTreeNode(int id, JsonData data, QuickTreeNode node = null)
+    {
+        Debug.Log("ExtractQuickTreeNode");
+        int _parentNode;
+        if (!data.ContainsKey("parent") || !int.TryParse(data["parent"].ToString(), out _parentNode))
+            _parentNode = -1;
+        int begin = data.ContainsKey("begin") ? int.Parse(data["begin"].ToString()) : 0;
+        int end = data.ContainsKey("end") ? int.Parse(data["end"].ToString()) : 0;
+        if (node == null)
+        {
+            _childNodeList = new List<int>();
+            if (data.ContainsKey("children") && !data["children"].ToString().Equals("null"))
+                for (int i = 0; i < data["children"].Count; i++)
+                    _childNodeList.Add(int.Parse(data["children"][i].ToString()));
+            if (_parent != null) node = new QuickTreeNode(id, begin, end, _parentNode, _childNodeList, (Sentence)_parent);
+            else node = new QuickTreeNode(id, begin, end, _parentNode, _childNodeList, null);
+        }
+        else node.SetParentNode(_parentNode);
+        if (node.Parent != null) node.Parent.Actualize3DObject();
+        Debug.Log("End ExtractQuickTreeNode");
+        return node;
+
+    }
+    #endregion
+
+    // annotation delete-methods
+    #region
+    public void DeleteElement(string id)
+    {
+        FireWorkBatchCommand(new List<string>() { id }, null, null, null);
+    }
+
+    public void DeleteElements(List<string> elementIDs)
+    {
+        Debug.Log("Send Delete Elements Request!");
+        FireWorkBatchCommand(elementIDs, null, null, null);
+    }
+
+    public void DeleteAllElementsOfType(Type type)
+    {
+        if (!ActualDocument.Document.Type_Map.ContainsKey(type)) return;
+        List<string> ids = new List<string>();
+
+        foreach (AnnotationBase element in ActualDocument.Document.Type_Map[type])
+            ids.Add("" + element.ID);
+
+        FireWorkBatchCommand(ids, null, null, null);
+    }
+
+    public void DeleteAllElementsOfTypes(HashSet<Type> types)
+    {
+        List<string> ids = new List<string>();
+        foreach (Type type in types)
+        {
+            if (!ActualDocument.Document.Type_Map.ContainsKey(type)) continue;
+
+            foreach (AnnotationBase element in ActualDocument.Document.Type_Map[type])
+                ids.Add("" + element.ID);
+        }
+        if (ids.Count > 0) FireWorkBatchCommand(ids, null, null, null);
+    }
+    #endregion
+
+    // IsoObjectAttribute methods
+    #region
+    public void SendIsoObjectAttributeCreatingRequest(string key, string value, int begin = 0, int end = 0)
+    {
+        Dictionary<string, List<Dictionary<string, object>>> _featureMap = new Dictionary<string, List<Dictionary<string, object>>>();
+        _featureMap.Add(AnnotationTypes.OBJECT_ATTRIBUTE, new List<Dictionary<string, object>>() { CreateIsoObjectAttributeMap(key, value, begin, end) });
+        FireWorkBatchCommand(null, _featureMap, null, null);
+    }
+
+    public Dictionary<string, object> CreateIsoObjectAttributeMap(string key, string value, int begin = 0, int end = 0)
+    {
+        Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        // key
+        _attributes.Add("key", key);
+
+        // value
+        _attributes.Add("value", value);
+
+        // begin
+        if (begin != 0) _attributes.Add("begin", begin);
+
+        // end
+        if (end != 0) _attributes.Add("end", end);
+
+        _attributes.Add("_type", AnnotationTypes.OBJECT_ATTRIBUTE);
+
+        return _attributes;
+    }
+
+    public void ChangeIsoObjectAttribute(string id, float x, float y, float z)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static IsoObjectAttribute ExtractIsoObjectAttribute(int id, JsonData data, AnnotationDocument doc, IsoObjectAttribute objectAttribute = null)
+    {
+        string key = data.ContainsKey("key") ? data["key"].ToString() : "";
+        string value = data.ContainsKey("value") ? data["value"].ToString() : "";
+        int begin = data.ContainsKey("begin") ? int.Parse(data["begin"].ToString()) : 0;
+        int end = data.ContainsKey("end") ? int.Parse(data["end"].ToString()) : 0;
+
+        if (objectAttribute != null)
+        {
+            if (begin != 0) objectAttribute.SetBegin(begin);
+            if (end != 0) objectAttribute.SetEnd(end);
+            if (key != "") objectAttribute.SetKey(key);
+            if (value != "") objectAttribute.SetValue(value);
+        }
+        else objectAttribute = new IsoObjectAttribute(id, begin, end, key, value, doc);
+        return objectAttribute;
+    }
+    #endregion
+
+}
