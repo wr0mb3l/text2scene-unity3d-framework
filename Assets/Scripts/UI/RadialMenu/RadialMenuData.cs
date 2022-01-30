@@ -49,6 +49,7 @@ public class RadialMenuData
         // Add Corresponding Layers and their menu types here.
         m_radialLayerMap.Add("Link", MenuType.IsoLinks);
         m_radialLayerMap.Add("SpatialEntity", MenuType.SpatialEntity);
+        m_radialLayerMap.Add("IsoPlaceTypes", MenuType.IsoPlaceTypes);
     }
 
     private static void Init()

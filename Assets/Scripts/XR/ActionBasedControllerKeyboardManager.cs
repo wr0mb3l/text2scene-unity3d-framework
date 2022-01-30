@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,9 +10,9 @@ using UnityEngine.Serialization;
 /// Use this class to map input actions to each controller state (mode)
 /// and set up the transitions between controller states (modes).
 /// </summary>
-[AddComponentMenu("XR/Action Based Controller Manager")]
+[AddComponentMenu("XR/Action Based Controller Keyboard Manager")]
 [DefaultExecutionOrder(kControllerManagerUpdateOrder)]
-public class ActionBasedControllerManager : MonoBehaviour
+public class ActionBasedControllerKeyboardManager : MonoBehaviour
 {
     public const int kControllerManagerUpdateOrder = 10;
 
@@ -40,7 +40,7 @@ public class ActionBasedControllerManager : MonoBehaviour
     [Serializable]
     public class ControllerState
     {
-        [SerializeField] 
+        [SerializeField]
         [Tooltip("Sets the controller state to be active. " +
                  "For the default states, setting this value to true will automatically update their StateUpdateEvent.")]
         bool m_Enabled;
@@ -86,8 +86,8 @@ public class ActionBasedControllerManager : MonoBehaviour
         {
             get => m_OnUpdate;
             set => m_OnUpdate = value;
-        } 
-        
+        }
+
         [SerializeField]
         StateExitEvent m_OnExit = new StateExitEvent();
         /// <summary>
@@ -101,9 +101,9 @@ public class ActionBasedControllerManager : MonoBehaviour
 
         public ControllerState(StateId defaultId = StateId.None) => m_Id = defaultId;
     }
-    
+
     [Space]
-    [Header("Controller GameObjects") ]
+    [Header("Controller GameObjects")]
 
     [SerializeField, FormerlySerializedAs("m_BaseControllerGO")]
     [Tooltip("The base controller GameObject, used for changing default settings on its components during state transitions.")]
@@ -116,7 +116,7 @@ public class ActionBasedControllerManager : MonoBehaviour
         get => m_BaseControllerGameObject;
         set => m_BaseControllerGameObject = value;
     }
-    
+
     [SerializeField, FormerlySerializedAs("m_TeleportControllerGO")]
     [Tooltip("The teleport controller GameObject, used for changing default settings on its components during state transitions.")]
     GameObject m_TeleportControllerGameObject;
@@ -130,7 +130,7 @@ public class ActionBasedControllerManager : MonoBehaviour
     }
 
     [Space]
-    [Header("Controller Actions") ]
+    [Header("Controller Actions")]
 
     // State transition actions
     [SerializeField]
@@ -207,15 +207,15 @@ public class ActionBasedControllerManager : MonoBehaviour
 
     // Character movement actions
     [SerializeField]
-    [Tooltip("The reference to the action of turning the XR rig with this controller.")]
-    InputActionReference m_Turn;
+    [Tooltip("The reference to the action of turning the XR rig camera with the mouse.")]
+    InputActionReference m_RotateCamera;
     /// <summary>
-    /// The reference to the action of turning the XR rig with this controller.
+    /// The reference to the action of turning the XR rig camera with the mouse.
     /// </summary>
-    public InputActionReference turn
+    public InputActionReference rotateCamera
     {
-        get => m_Turn;
-        set => m_Turn = value;
+        get => m_RotateCamera;
+        set => m_RotateCamera = value;
     }
 
     [SerializeField]
@@ -256,7 +256,7 @@ public class ActionBasedControllerManager : MonoBehaviour
     }
 
     [Space]
-    [Header("States") ]
+    [Header("States")]
 
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
     [SerializeField]
@@ -298,11 +298,9 @@ public class ActionBasedControllerManager : MonoBehaviour
     // Components of the controller to switch on and off for different states
     XRBaseController m_BaseController;
     XRBaseInteractor m_BaseInteractor;
-    XRInteractorLineVisual m_BaseLineVisual;
 
     XRBaseController m_TeleportController;
     XRBaseInteractor m_TeleportInteractor;
-    XRInteractorLineVisual m_TeleportLineVisual;
 
     protected void OnEnable()
     {
@@ -411,14 +409,6 @@ public class ActionBasedControllerManager : MonoBehaviour
             if (m_BaseInteractor == null)
                 Debug.LogWarning($"Cannot find any {nameof(XRBaseInteractor)} component on the Base Controller GameObject.", this);
         }
-
-        // Only check the line visual component for RayInteractor, since DirectInteractor does not use the line visual component
-        if (m_BaseInteractor is XRRayInteractor && m_BaseLineVisual == null)
-        {
-            m_BaseLineVisual = m_BaseControllerGameObject.GetComponent<XRInteractorLineVisual>();
-            if (m_BaseLineVisual == null)
-                Debug.LogWarning($"Cannot find any {nameof(XRInteractorLineVisual)} component on the Base Controller GameObject.", this);
-        }
     }
 
     void FindTeleportControllerComponents()
@@ -434,13 +424,6 @@ public class ActionBasedControllerManager : MonoBehaviour
             m_TeleportController = m_TeleportControllerGameObject.GetComponent<XRBaseController>();
             if (m_TeleportController == null)
                 Debug.LogWarning($"Cannot find {nameof(XRBaseController)} component on the Teleport Controller GameObject.", this);
-        }
-
-        if (m_TeleportLineVisual == null)
-        {
-            m_TeleportLineVisual = m_TeleportControllerGameObject.GetComponent<XRInteractorLineVisual>();
-            if (m_TeleportLineVisual == null)
-                Debug.LogWarning($"Cannot find {nameof(XRInteractorLineVisual)} component on the Teleport Controller GameObject.", this);
         }
 
         if (m_TeleportInteractor == null)
@@ -461,12 +444,9 @@ public class ActionBasedControllerManager : MonoBehaviour
 
         if (m_BaseController != null)
             m_BaseController.enableInputActions = enable;
-        
+
         if (m_BaseInteractor != null)
             m_BaseInteractor.enabled = enable;
-        
-        if (m_BaseInteractor is XRRayInteractor && m_BaseLineVisual != null)
-            m_BaseLineVisual.enabled = enable;
     }
 
     /// <summary>
@@ -477,12 +457,9 @@ public class ActionBasedControllerManager : MonoBehaviour
     {
         FindTeleportControllerComponents();
 
-        if (m_TeleportLineVisual != null) 
-            m_TeleportLineVisual.enabled = enable;
-        
         if (m_TeleportController != null)
             m_TeleportController.enableInputActions = enable;
-        
+
         if (m_TeleportInteractor != null)
             m_TeleportInteractor.enabled = enable;
     }
@@ -492,13 +469,13 @@ public class ActionBasedControllerManager : MonoBehaviour
         // Change controller and enable actions depending on the previous state
         switch (previousStateId)
         {
-            case StateId.None: 
+            case StateId.None:
                 // Enable transitions to Teleport, Edit state 
                 EnableAction(m_TeleportModeActivate);
                 EnableAction(m_TeleportModeCancel);
 
                 // Enable turn and move actions
-                EnableAction(m_Turn);
+                EnableAction(m_RotateCamera);
                 EnableAction(m_Move);
 
                 EnableAction(m_RadialModeActivate);
@@ -510,16 +487,14 @@ public class ActionBasedControllerManager : MonoBehaviour
             case StateId.Select:
                 break;
             case StateId.Teleport:
-                EnableAction(m_Turn);
                 EnableAction(m_Move);
                 SetBaseController(true);
                 break;
             case StateId.Interact:
-                EnableAction(m_Turn);
                 EnableAction(m_Move);
                 break;
             case StateId.Radial:
-                EnableAction(m_Turn);
+                EnableAction(m_RotateCamera);
                 EnableAction(m_Move);
                 EnableAction(m_TeleportModeActivate);
                 break;
@@ -539,16 +514,14 @@ public class ActionBasedControllerManager : MonoBehaviour
             case StateId.Select:
                 break;
             case StateId.Teleport:
-                DisableAction(m_Turn);
                 DisableAction(m_Move);
                 SetBaseController(false);
                 break;
             case StateId.Interact:
-                DisableAction(m_Turn);
                 DisableAction(m_Move);
                 break;
             case StateId.Radial:
-                DisableAction(m_Turn);
+                DisableAction(m_RotateCamera);
                 DisableAction(m_Move);
                 DisableAction(m_TeleportModeActivate);
                 break;
@@ -558,7 +531,7 @@ public class ActionBasedControllerManager : MonoBehaviour
         }
     }
 
-    void OnEnterTeleportState(StateId previousStateId) => SetTeleportController(true); 
+    void OnEnterTeleportState(StateId previousStateId) => SetTeleportController(true);
 
     void OnExitTeleportState(StateId nextStateId) => SetTeleportController(false);
 
@@ -655,7 +628,7 @@ public class ActionBasedControllerManager : MonoBehaviour
         var cancelTeleport = cancelTeleportModeAction != null && cancelTeleportModeAction.triggered;
         var releasedTeleport = teleportModeAction != null && teleportModeAction.phase == InputActionPhase.Waiting;
 
-        if (cancelTeleport || releasedTeleport) 
+        if (cancelTeleport || releasedTeleport)
             TransitionState(m_TeleportState, m_SelectState);
     }
 

@@ -1,0 +1,463 @@
+{
+    "name": "Keyboard Input Actions",
+    "maps": [
+        {
+            "name": "Position",
+            "id": "b0fbb2c3-dbf5-47ce-b451-71275df7caa8",
+            "actions": [
+                {
+                    "name": "Local X",
+                    "type": "Value",
+                    "id": "5420fd85-eea9-47cd-bbbc-2ce00ca1ac28",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Local Y",
+                    "type": "Value",
+                    "id": "ebb3ea6d-1643-495e-9773-9275d10f5172",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Local Z",
+                    "type": "Value",
+                    "id": "68f1a2dd-b61b-4f15-bc08-d5c86e6be95a",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Rotation",
+                    "type": "Value",
+                    "id": "340c50e2-4901-4c01-ad47-7ed15fc7a0d9",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "89c97f2c-cb99-4b99-8cc6-ed41d41e74ea",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "47daeaa1-ef7c-48db-9ee8-b3ef65424787",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "786a39ee-78e4-4419-b482-709a9c90a13d",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "7bad5751-c4eb-46c5-916b-b808779f4713",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "7fd3a67c-c734-4d81-a93b-511b30f8d9c1",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "f252d02b-f137-41b3-8063-ca0e91200556",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "7847d5df-6751-45a8-9fb8-8b4f9493b076",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+            ]
+        },
+        {
+            "name": "Interaction",
+            "id": "389df809-5641-4325-93dd-fab67f75dae6",
+            "actions": [
+                {
+                    "name": "Select",
+                    "type": "Button",
+                    "id": "0e66721b-3b2e-4594-a3c6-d86a14376c9b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Activate",
+                    "type": "Button",
+                    "id": "08d78732-914d-4bbb-b004-02426b522bbe",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "UI Press",
+                    "type": "Button",
+                    "id": "19372112-8d0a-4d7f-b8ac-fef0ef9c9686",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Haptic Device",
+                    "type": "PassThrough",
+                    "id": "cd615bcc-1a51-4cb2-b391-b8d629642298",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Teleport Mode Cancel",
+                    "type": "Button",
+                    "id": "f862085f-c55a-486c-85ae-e5df24b5c5db",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Teleport Mode Activate",
+                    "type": "Button",
+                    "id": "6243d5d6-93d4-4554-a2ce-20eaf4367a53",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Teleport Select",
+                    "type": "Button",
+                    "id": "62c88e73-a8c7-4015-a66e-cc89f47dc0bf",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "RotateScaleMove",
+                    "type": "Value",
+                    "id": "7bb7c776-e2de-43a9-b89a-a9f1b49edddc",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Switch Interact Mode",
+                    "type": "Value",
+                    "id": "4a949dfb-86e4-411a-915b-6e3b6b560676",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Mode Activate",
+                    "type": "Button",
+                    "id": "e4ffd703-2b7d-48cb-8186-3a72c69f7444",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Mode Cancel",
+                    "type": "Button",
+                    "id": "850123fd-1406-4647-aabe-cfd5d394e0c7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Control",
+                    "type": "Value",
+                    "id": "d4e0c69e-b56c-4742-89b8-0d39f509bb89",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Select",
+                    "type": "Button",
+                    "id": "6331c680-587b-4deb-ba7a-9432c0727c35",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "8252c899-3a66-4898-9cd8-2436dc57ebd1",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "04c49131-94b7-46ba-b31e-6f17b8f13697",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Activate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4beb1a63-475e-487a-836a-f0fd14befd69",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "13cb9d85-d82a-41f6-b9d2-9ac80fdb6da5",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Teleport Mode Activate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "510fc768-146d-45e3-a331-2409166100aa",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Teleport Mode Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ce56ba06-c39a-41a7-8c95-5cd84b773b7f",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Haptic Device",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "8247cff4-69c9-47e6-87f5-ef726b3ba80b",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Switch Interact Mode",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "d793b69d-b719-40f4-9757-22e1d5fe3dd4",
+                    "path": "<Keyboard>/v",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Switch Interact Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "ca07353c-7f89-4172-9df7-aa2892d1092f",
+                    "path": "<Keyboard>/b",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Switch Interact Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "c3e75193-7516-4e88-b05e-cdcc8dc4e27a",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Switch Interact Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "636d6098-679b-4fcf-a665-f412351e600d",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Switch Interact Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "a8431a5a-b403-443f-8ff8-9082ff2be324",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "2d431d62-7e22-4813-8b31-588e1b48ffdc",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateScaleMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "5fd8afac-ffc9-463c-8aef-0924dc467e85",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateScaleMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "93007837-0733-4771-a3f3-dcb5b891fb95",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateScaleMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "e6e8195f-1631-4369-b238-8b18b33a7dd0",
+                    "path": "<Keyboard>/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateScaleMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "60c03027-d7e5-492c-9109-e67048646eaa",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateScaleMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "555b3224-f72a-44d1-b37a-50df09c509b6",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Radial Mode Activate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7d858fca-1dd8-4ddf-b6e1-eb6625987e51",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Radial Mode Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a83651c3-a93a-4f93-9ce4-a3db35a7e538",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Radial Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "56635d91-fbc3-45f9-b957-211aa218d5d3",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "ScaleVector2",
+                    "groups": "",
+                    "action": "Radial Control",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
