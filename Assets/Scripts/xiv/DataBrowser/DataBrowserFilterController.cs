@@ -28,7 +28,7 @@ public class DataBrowserFilterController : MonoBehaviour
 
     private Transform _parent;
 
-    private int _typePointer;
+    private int _typePointer = 0;
     public int TypePointer
     {
         get { return _typePointer; }
@@ -90,7 +90,20 @@ public class DataBrowserFilterController : MonoBehaviour
         DeselectAll = transform.Find("ButtonDeselectAll").GetComponent<Button>();
         DeselectAll.onClick.AddListener(delegate { SetCategoryStates(ShapeNetInterface.CheckboxStatus.NoneChecked); });
 
+        showFilterPanelItems(false);
         _baseInit = true;
+    }
+
+    public void showFilterPanelItems(bool enable){
+        Title.gameObject.SetActive(enable);
+        SiteIndicator.gameObject.SetActive(enable);
+        PreviousSite.gameObject.SetActive(enable);
+        NextSite.gameObject.SetActive(enable);
+        Back.gameObject.SetActive(enable);
+        SelectAll.gameObject.SetActive(enable);
+        DeselectAll.gameObject.SetActive(enable);
+        for (int k = 0; k < Checkboxes.Length; k++)
+            DataFilters[k].gameObject.SetActive(enable);
     }
 
     public void Init(string title, Dictionary<string, ShapeNetInterface.CheckboxStatus> types)

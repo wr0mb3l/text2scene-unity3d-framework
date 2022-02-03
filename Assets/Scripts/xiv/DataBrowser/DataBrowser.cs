@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 public class DataBrowser : MonoBehaviour
 {
-    public Button StartButton;
-    public Button PlaceButton;
-
     public ShapeNetInterface shapeNetInterface;
     public Material GoetheOn;
     public Material GoetheOff;
@@ -46,7 +43,7 @@ public class DataBrowser : MonoBehaviour
     /// <summary>
     /// The Init method initializes the DataBrowser and all of its components.
     /// </summary>
-    void Start()
+    public void Start()
     {
         LastBrowserStateMap = new Dictionary<string, object>();
         FilterPanel = GetComponentInChildren<DataBrowserFilterController>();
@@ -57,17 +54,6 @@ public class DataBrowser : MonoBehaviour
         DataPanel.Init();
         SearchPanel = GetComponentInChildren<DataSearchPanel>();
         SearchPanel.Init();
-
-        // StartButton.onClick.AddListener(() =>
-        // {
-        //     Debug.Log("start clicked");
-        //     Debug.Log(shapeNetInterface.Name);
-        //     GameObject.Find("DataBrowser").gameObject.GetComponent<DataBrowser>().SelectedInterface = shapeNetInterface;
-        // });
-        // PlaceButton.onClick.AddListener(() =>
-        // {
-        //     LoadObject();
-        // });
     }
 
     /// <summary>

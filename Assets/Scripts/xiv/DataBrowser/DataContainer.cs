@@ -8,6 +8,7 @@ public class DataContainer : MonoBehaviour
     public Text Name { get; private set; }
     public Text DataType { get; private set; }
     public Image Thumbnail { get; private set; }
+    public Material thumbnailMat { get; private set; }
 
     private Data _data;
     public Data Resource
@@ -30,5 +31,7 @@ public class DataContainer : MonoBehaviour
         Name = transform.Find("Name").GetComponent<Text>();
         DataType = transform.Find("Type").GetComponent<Text>();
         Thumbnail = transform.Find("Thumbnail").GetComponent<Image>();
+        thumbnailMat = new Material(Shader.Find("UI/Default"));
+        Thumbnail.material = thumbnailMat;
     }
 }

@@ -38,12 +38,18 @@ public class ShapeNetObject : Data
         // DataContainer.DataTextIcon.gameObject.SetActive(false);
         DataContainer.Thumbnail.enabled = true;
         if (Thumbnail != null)
+        {
+            DataContainer.Thumbnail.enabled = false;
             DataContainer.Thumbnail.material.SetTexture("_MainTex", Thumbnail);
+            DataContainer.Thumbnail.enabled = true;
+        }
         else
             DataContainer.StartCoroutine(ShapeNetInterface.LoadThumbnail(this, () =>
             {
                 if (DataContainer == null) return;
+                DataContainer.Thumbnail.enabled = false;
                 DataContainer.Thumbnail.material.SetTexture("_MainTex", Thumbnail);
+                DataContainer.Thumbnail.enabled = true;
             }));
     }
 }

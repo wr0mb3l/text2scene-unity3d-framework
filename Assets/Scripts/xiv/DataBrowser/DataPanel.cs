@@ -70,7 +70,7 @@ public class DataPanel : MonoBehaviour
         PreviousSite.gameObject.SetActive(status);
         NextSite.gameObject.SetActive(status);
         ParentDir.gameObject.SetActive(status);
-        Root.gameObject.SetActive(status);
+        // Root.gameObject.SetActive(status);
         foreach (DataContainer dc in DataContainers)
             dc.gameObject.SetActive(status);
     }
@@ -92,6 +92,7 @@ public class DataPanel : MonoBehaviour
                 DataContainers[i].Resource = Datas[i + _containerPointer];
                 if ((string)DataContainers[i].Resource.ID != "")
                 {
+                    DataContainers[i].GetComponent<Button>().onClick.RemoveAllListeners();
                     if (i == 0)
                         DataContainers[i].GetComponent<Button>().onClick.AddListener(delegate { DataContainerClicked(0); });
                     else if (i == 1)
@@ -139,10 +140,10 @@ public class DataPanel : MonoBehaviour
             Debug.Log("Scale & Reorientate Obj");
             GameObject GameObject = ObjectLoader.LoadObject(path + "\\" + shapeObj.ID + ".obj", path + "\\" + shapeObj.ID + ".mtl");
             GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
-            GhostObject.AddComponent<BoxCollider>();
+            GhostObject.transform.GetChild(0).GetChild(0).gameObject.AddComponent<MeshCollider>().convex = true;
             GhostObject.AddComponent<Rigidbody>();
             GhostObject.AddComponent<XRGrabInteractable>();
-            GhostObject.transform.position = new Vector3(0, 5, 0);
+            GhostObject.transform.position = this.transform.position;
             // Instantiate(GameObject);
             // GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
 

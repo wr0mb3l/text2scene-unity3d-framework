@@ -22,6 +22,8 @@ public class ShapeNetInterface : Interface
 
     // MODELS
     public const string MODELS = WS + "loadedobjects";
+    public const string OBJECT_THUMBNAILS = WS + "thumbnails";
+    public const string OBJECT_THUMBNAIL_INFO = WS + "thumbnailsInfos";
     public const string OBJECT_TAXONOMY = WS + "taxonomy";
     public const string GET_OBJECT_ID = WS + "get?id=";
     public const string SEARCH_OBJECTS = WS + "search?search=";
@@ -35,6 +37,8 @@ public class ShapeNetInterface : Interface
     public string _objectListError;
     private bool _objectTaxonomyLoaded;
     private string _objectTaxonomyError;
+    private bool _objectThumbnailsActualized;
+    private string _objectThumbnailError;
 
     public Dictionary<string, ShapeNetModel> ShapeNetModels;
     public Dictionary<string, ShapeNetTaxonomyEntry> ModelTaxonomies;
@@ -65,13 +69,26 @@ public class ShapeNetInterface : Interface
 
     public Dictionary<string, string> CachedTexturePathMap { get; private set; }
 
+    private const string ThumbnailZip = "thumbnails.zip";
+    private const string ThumbnailInfosOld = "thumbnailLastUpdate.txt";
+    private const string ThumbnailInfos = "thumbnailInfos.json";
     private string _path;
+    private byte[] bytes;
 
     private DirectoryInfo dir;
     private FileStream fileStream;
+    private StreamReader streamReader;
     private UnityWebRequest request;
     private FastZip zip;
     private Thread _unzippingThread;
+    private FileInfo[] ActualFiles;
+    private long ActualSize;
+    private long UnzippedSize;
+    private long StoredSize;
+    private long JSONSize;
+    private long StoredTimestamp;
+    private long JSONtimestamp;
+    private JsonData storedInfos;
     private JsonData data;
     private JsonData objectList;
     private JsonData taxonomyObject;
@@ -111,8 +128,10 @@ public class ShapeNetInterface : Interface
         ObjectSubCategoryMap = new Dictionary<string, string>();
         _objectListLoaded = false;
         _objectTaxonomyLoaded = false;
+        _objectThumbnailsActualized = false;
         _objectListError = null;
         _objectTaxonomyError = null;
+        _objectThumbnailError = null;
 
         ShapeNetTextures = new Dictionary<string, ShapeNetTexture>();
         TextureTaxonomies = new Dictionary<string, ShapeNetTaxonomyEntry>();
@@ -141,6 +160,14 @@ public class ShapeNetInterface : Interface
             if (_objectTaxonomyError == null) InitStatus = "ShapeNet object-taxonomy loaded.";
             else InitStatus = "ShapeNet object-taxonomy cannot be loaded: " + _objectTaxonomyError;
             _objectTaxonomyLoaded = _objectTaxonomyError == null;
+        }
+        if (!_objectThumbnailsActualized)
+        {
+            InitStatus = "Loading Shapenet-Model-Thumbnails...";
+            yield return StartCoroutine(CheckThumbnails(CACHED_OBJECT_DIR, CACHED_OBJECT_THUMBNAILS, CACHED_OBJECT_FILES, OBJECT_THUMBNAIL_INFO, OBJECT_THUMBNAILS, "Object"));
+            if (_objectThumbnailError == null) InitStatus = "ShapeNet object-thumbnails actualized.";
+            else InitStatus = "ShapeNet object-thumbnails cannot be actualized: " + _objectThumbnailError;
+            _objectThumbnailsActualized = _objectThumbnailError == null;
         }
         if (!_textureListLoaded)
         {
@@ -321,6 +348,123 @@ public class ShapeNetInterface : Interface
             sObj.Thumbnail = DownloadHandlerTexture.GetContent(request);
             onThumbnail?.Invoke();
         }
+    }
+
+    private IEnumerator CheckThumbnails(string cacheFolder, string thumbnailCacheFolder, string dataCacheFolder, string infoURL, string thumbnailURL, string thumbnailType)
+    {
+        _path = UserFolder + thumbnailCacheFolder;
+        if (!Directory.Exists(_path))
+            Directory.CreateDirectory(_path);
+
+        bool update = false;
+        request = UnityWebRequest.Get(infoURL);
+        yield return request.SendWebRequest();
+        if (request.isNetworkError || request.isHttpError)
+            _objectThumbnailError = request.error;
+        else
+        {
+
+            // getting the timestamp of thumbnails from server
+            data = JsonMapper.ToObject(request.downloadHandler.text);
+            if (!data.Keys.Contains("success") || !bool.Parse(data["success"].ToString()) ||
+                !data.Keys.Contains("timestamp") || !data.Keys.Contains("size"))
+            {
+                _objectThumbnailError = "Downloading " + thumbnailType.ToLower() + " timestamp failed.";
+                yield break;
+            }
+
+            JSONtimestamp = long.Parse(data["timestamp"].ToString());
+            JSONSize = long.Parse(data["size"].ToString());
+
+            // get rid of deprecated file
+            _path = UserFolder + cacheFolder + ThumbnailInfosOld;
+            if (File.Exists(_path))
+                File.Delete(_path);
+            // creating the timestamp file if needed, otherwise comparing the timestamps
+            _path = UserFolder + cacheFolder + ThumbnailInfos;
+            if (!File.Exists(_path))
+            {
+                Debug.Log(thumbnailType + " timestamp-file missing. Updating " + thumbnailType.ToLower() + " thumbnails...");
+                fileStream = new FileStream(_path, FileMode.Create);
+                update = true;
+            }
+            else
+            {
+                try
+                {
+                    fileStream = new FileStream(_path, FileMode.Open);
+                    streamReader = new StreamReader(fileStream);
+                    storedInfos = JsonMapper.ToObject(streamReader.ReadToEnd());
+                    streamReader.Close();
+                    fileStream.Close();
+                    ActualSize = 0;
+                    ActualFiles = new DirectoryInfo(UserFolder + thumbnailCacheFolder).GetFiles();
+                    for (int i = 0; i < ActualFiles.Length; i++)
+                        ActualSize += ActualFiles[i].Length;
+                    update = !long.TryParse(storedInfos["timestamp"].ToString(), out StoredTimestamp) || JSONtimestamp != StoredTimestamp ||
+                             !long.TryParse(storedInfos["size"].ToString(), out StoredSize) || JSONSize != StoredSize ||
+                             !long.TryParse(storedInfos["unzippedSize"].ToString(), out UnzippedSize) || UnzippedSize != ActualSize;
+
+                    if (update) Debug.Log(thumbnailType + " thumbnails out of date. Updating " + thumbnailType.ToLower() + " thumbnails...");
+                    else Debug.Log(thumbnailType + " thumbnails up-to-date.");
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("Could not parse Thumbnails. Updating " + thumbnailType.ToLower() + " thumbnails...");
+                    fileStream = new FileStream(_path, FileMode.Create);
+                    update = true;
+                }
+            }
+
+            if (update)
+            {
+                _path = UserFolder + thumbnailCacheFolder;
+                request = UnityWebRequest.Get(thumbnailURL);
+                request.SendWebRequest();
+                while (!request.isDone)
+                {
+                    InitStatus = "Downloading " + thumbnailType.ToLower() + " thumbnails:\n" +
+                                     (int)(request.downloadedBytes / Mathf.Pow(10, 6) * 100) / 100f + " MB of " +
+                                     (int)(JSONSize / Mathf.Pow(10, 6) * 100) / 100f + " MB";
+                    yield return null;
+                }
+                InitStatus = "Downloading " + thumbnailType.ToLower() + " thumbnails:\n" +
+                                     (int)(request.downloadedBytes / Mathf.Pow(10, 6) * 100) / 100f + " MB of " +
+                                     (int)(JSONSize / Mathf.Pow(10, 6) * 100) / 100f + " MB";
+                if (request.isNetworkError || request.isHttpError)
+                    _objectThumbnailError = request.error;
+                else
+                {
+                    InitStatus = "Unzipping " + thumbnailType.ToLower() + " thumbnails...";
+                    fileStream = new FileStream(_path + ThumbnailZip, FileMode.Create);
+                    fileStream.Write(request.downloadHandler.data, 0, request.downloadHandler.data.Length);
+                    fileStream.Close();
+                    _unzippingThread = new Thread(() => { UnzipFile(_path + ThumbnailZip, _path); });
+                    _unzippingThread.Start();
+                    while (_unzippingThread.IsAlive)
+                        yield return null;
+                    File.Delete(_path + ThumbnailZip);
+                }
+                ActualSize = 0;
+                ActualFiles = new DirectoryInfo(UserFolder + thumbnailCacheFolder).GetFiles();
+                for (int i = 0; i < ActualFiles.Length; i++)
+                    ActualSize += ActualFiles[i].Length;
+                storedInfos = new JsonData();
+                storedInfos["timestamp"] = data["timestamp"];
+                storedInfos["size"] = data["size"];
+                storedInfos["unzippedSize"] = ActualSize;
+                bytes = System.Text.Encoding.UTF8.GetBytes(storedInfos.ToJson());
+                _path = UserFolder + cacheFolder + ThumbnailInfos;
+                fileStream = new FileStream(_path, FileMode.Open);
+                fileStream.SetLength(0);
+                fileStream.Write(bytes, 0, bytes.Length);
+                fileStream.Close();
+            }
+
+            if (streamReader != null) streamReader.Close();
+            if (fileStream != null) fileStream.Close();
+        }
+
     }
 
     private void UnzipFile(string filePath, string targetDir)
@@ -531,11 +675,13 @@ public class ShapeNetInterface : Interface
 
     private void SetupMainMenu(DataBrowser browser)
     {
+        browser.FilterPanel.showFilterPanelItems(false);
         browser.DataPanel.Init(Name, GetShapeNetSpaces());
         browser.DataPanel.Root.gameObject.SetActive(false);
         browser.DataPanel.ParentDir.interactable = false;
         foreach (DataContainer dc in browser.DataPanel.DataContainers)
         {
+            dc.GetComponent<Button>().onClick.RemoveAllListeners();
             dc.GetComponent<Button>().onClick.AddListener(() =>
             {
                 ResourceData resource = (ResourceData)dc.Resource;
@@ -546,10 +692,12 @@ public class ShapeNetInterface : Interface
                     browser.SetActualState(Name, resource);
                     if (resource.Name.Equals(FORMATTED_MODEL_NAME))
                     {
+                        browser.FilterPanel.showFilterPanelItems(true);
                         browser.DataPanel.Init(resource.Name, GetObjectList(ShapeNetModels.Values, browser.SearchPanel.SearchPattern.ToLower()));
                     }
                     else if (resource.Name.Equals(FORMATTED_TEXTURE_NAME))
                     {
+                        browser.FilterPanel.showFilterPanelItems(true);
                         browser.DataPanel.Init(resource.Name, GetObjectList(ShapeNetTextures.Values, browser.SearchPanel.SearchPattern.ToLower()));
                     }
                     SetupFilterPanel(browser, resource.Name, false);

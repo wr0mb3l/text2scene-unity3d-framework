@@ -1308,15 +1308,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BaseControllerGameObject: {fileID: 1584458305448714245}
   m_TeleportControllerGameObject: {fileID: 1584458305737044084}
-  m_EditControllerGameObject: {fileID: 0}
   m_TeleportModeActivate: {fileID: 1263111715868034790, guid: c348712bda248c246b8c49b3db54643f,
     type: 3}
   m_TeleportModeCancel: {fileID: 737890489006591557, guid: c348712bda248c246b8c49b3db54643f,
     type: 3}
-  m_EditModeActivate: {fileID: 0}
-  m_EditModeCancel: {fileID: 0}
+  m_RadialModeActivate: {fileID: 0}
+  m_RadialModeCancel: {fileID: 0}
   m_RadialMenuAxis: {fileID: 0}
-  m_RadialMenuPages: {fileID: 0}
+  m_RadialMenuClick: {fileID: 0}
   m_Turn: {fileID: 1010738217276881514, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_Move: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_TranslateAnchor: {fileID: 7779212132400271959, guid: c348712bda248c246b8c49b3db54643f,
@@ -1350,18 +1349,6 @@ MonoBehaviour:
   m_InteractState:
     m_Enabled: 0
     m_Id: 3
-    m_OnEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    m_OnUpdate:
-      m_PersistentCalls:
-        m_Calls: []
-    m_OnExit:
-      m_PersistentCalls:
-        m_Calls: []
-  m_EditState:
-    m_Enabled: 0
-    m_Id: 4
     m_OnEnter:
       m_PersistentCalls:
         m_Calls: []
@@ -1427,9 +1414,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ead7174be2768a4da5c16b4b1d21066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dataBrowser: {fileID: 0}
   m_KeyboardXTranslateAction: {fileID: 0}
   m_KeyboardYTranslateAction: {fileID: 0}
   m_KeyboardZTranslateAction: {fileID: 0}
+  m_ManipulateHeadAction: {fileID: 0}
   m_MouseDeltaAction: {fileID: -1364572812064628064, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
     type: 3}
   m_GripAction: {fileID: 2394474414162557516, guid: 2dc56aa6b8b59b8428037f7ce76fa633,
@@ -1444,6 +1433,7 @@ MonoBehaviour:
   m_MouseYRotateSensitivity: 0.1
   m_MouseYRotateInvert: 0
   m_CameraTransform: {fileID: 0}
+  m_ManipulateHeadInput: 1
 --- !u!114 &1584458306141385953
 MonoBehaviour:
   m_ObjectHideFlags: 0

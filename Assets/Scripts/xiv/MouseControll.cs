@@ -12,6 +12,8 @@ public class MouseControll : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         // Add Character controller
         controller = gameObject.AddComponent<CharacterController>();
+        controller.radius = 0.1f;
+        controller.height = 1;
     }
 
     public float mouseSensitivity = 1.0f;
