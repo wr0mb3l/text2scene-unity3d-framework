@@ -9,32 +9,36 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class RadialMenuController : MonoBehaviour
 {
     [SerializeField]
-    [Tooltip("Keyboard Radial Menu.")]
+    [Tooltip("Is this used on a Keyboard Rig?")]
     bool m_Keyboard;
     /// <summary>
-    /// Keyboard Radial Menu."
+    /// Is this used on a Keyboard Rig?
     /// </summary>
-    public bool keyboard => m_Keyboard;
+    public bool keyboard
+    {
+        get => m_Keyboard;
+        set => m_Keyboard = value;
+    }
 
     [SerializeField]
     [Tooltip("The reference to the action of choosing a radial menu option for this controller.")]
-    InputActionReference m_menuSelectAxis;
+    InputActionReference m_MenuSelectAxis;
     /// <summary>
     /// The reference to the action of choosing a radial menu option for this controller."
     /// </summary>
     public InputActionReference menuSelectAxis
     {
-        get => m_menuSelectAxis;
-        set => m_menuSelectAxis = value;
+        get => m_MenuSelectAxis;
+        set => m_MenuSelectAxis = value;
     }
 
     [SerializeField]
     [Tooltip("The reference to the action of clicking a menu button.")]
-    InputActionReference m_menuClick;
+    InputActionReference m_MenuClick;
     /// <summary>
     /// The reference to the action of clicking a menu button.
     /// </summary>
-    public InputActionReference menuClick => m_menuClick;
+    public InputActionReference menuClick => m_MenuClick;
 
     [Space]
     [Header("Interactor")]
@@ -53,49 +57,45 @@ public class RadialMenuController : MonoBehaviour
     /// <summary>
     /// (Read Only) The current selected gameObject.
     /// </summary>
-    public GameObject selectedObject => m_SelectedObject;
+    public GameObject selectedObject
+    {
+        set => m_SelectedObject = value;
+        get => m_SelectedObject;
+    }
 
     [Space]
     [Header("Menu Items")]
     [SerializeField]
     [Tooltip("The cursor gameObject.")]
-    GameObject m_cursor;
+    GameObject m_Cursor;
     /// <summary>
     /// The cursor gameObject.
     /// </summary>
-    public GameObject cursor => m_cursor;
+    public GameObject cursor => m_Cursor;
 
     [SerializeField]
     [Tooltip("The heading gameObject.")]
-    GameObject m_heading;
+    GameObject m_Heading;
     /// <summary>
     /// The heading gameObject.
     /// </summary>
-    public GameObject heading => m_heading;
-
-    [SerializeField]
-    [Tooltip("The selected sprite gameObject.")]
-    GameObject m_selected;
-    /// <summary>
-    /// The selected sprite gameObject.
-    /// </summary>
-    public GameObject selected => m_selected;
+    public GameObject heading => m_Heading;
 
     [SerializeField]
     [Tooltip("The previous page Button in the radial menu.")]
-    GameObject m_previousPage;
+    GameObject m_PreviousPage;
     /// <summary>
     /// The cursor gameObject.
     /// </summary>
-    public GameObject previousPageText => m_previousPage;
+    public GameObject previousPageText => m_PreviousPage;
 
     [SerializeField]
     [Tooltip("The next page Button in the radial menu.")]
-    GameObject m_nextPage;
+    GameObject m_NextPage;
     /// <summary>
     /// The cursor gameObject.
     /// </summary>
-    public GameObject nextPageText => m_nextPage;
+    public GameObject nextPageText => m_NextPage;
 
     [SerializeField]
     [Tooltip("The radial button gameObjects.")]
@@ -107,14 +107,16 @@ public class RadialMenuController : MonoBehaviour
 
 
     private const int SECTIONS = 8;
-    private float degreeIncrement = 360.0f / SECTIONS;
+    private float m_DegreeIncrement = 360.0f / SECTIONS;
 
-    private int hoveredSection = -1;
-    private int currentPage = 0;
+    private int m_HoveredSection = -1;
+    private int m_CurrentPage = 0;
 
-    private List<RadialSection> radialSections = new List<RadialSection>();
-    private List<RadialSection> currentSections = new List<RadialSection>();
-    private string prettyHeading = "heading";
+    private Vector2 m_CursorPos;
+
+    private List<RadialSection> m_RadialSections = new List<RadialSection>();
+    private List<RadialSection> m_CurrentSections = new List<RadialSection>();
+    private string m_PrettyHeading = "heading";
 
     // Stores the layers and their corresponding menus.
     // private Dictionary<int, RadialSection> allMenus = RadialMenuData.layerMenus;
@@ -124,19 +126,20 @@ public class RadialMenuController : MonoBehaviour
         // Detect hit object
         List<XRBaseInteractable> targets = new List<XRBaseInteractable>();
         m_Interactor.GetHoverTargets(targets);
-
         m_SelectedObject = targets[0].transform.gameObject;
 
         // Get appropriate menu according to layer
-        radialSections = RadialMenuData.GetMenuFromInteractionLayerMask(targets[0]);
+        m_RadialSections = RadialMenuData.GetMenuFromInteractionLayerMask(targets[0]);
 
-        currentSections = radialSections;
+        m_CurrentSections = m_RadialSections;
 
-        Show(true);
+        m_CursorPos = new Vector2(0, 0);
 
         DisableAllSelections();
 
         ShowPage();
+
+        Show(true);
     }
 
     private void OnDisable()
@@ -151,101 +154,126 @@ public class RadialMenuController : MonoBehaviour
 
     public void Update()
     {
-        var menuSelectAction = GetInputAction(m_menuSelectAxis);
+        var menuSelectAction = GetInputAction(m_MenuSelectAxis);
 
         if (menuSelectAction != null)
         {
             Vector2 pos = menuSelectAction.ReadValue<Vector2>();
-            if (pos.magnitude >= 0.6)
-            {
-                float rotation = GetDegree(pos);
-                hoveredSection = GetNearestSection(rotation);
 
-                SelectButton(m_RadialButtons[hoveredSection]);
-            }
-            else if (pos.magnitude <= 0.4)
+            if (keyboard)
             {
-                if (pos.x < 0)
+                // Add new Input to current position
+                m_CursorPos += Time.deltaTime * pos;
+                if (m_CursorPos.magnitude > 1) m_CursorPos.Normalize();
+            }
+            else
+            {
+                m_CursorPos = pos;
+            }
+
+            SetCursorPosition(m_CursorPos);
+            SetCursorActive(true);
+
+            // Determine and highlight corresponding Section
+            if (m_CursorPos != new Vector2(0, 0))
+            {
+                if (m_CursorPos.magnitude >= 0.6)
                 {
-                    SelectButton(m_previousPage);
-                    hoveredSection = SECTIONS;
-                } else if (pos.x > 0)
+                    float rotation = GetDegree(m_CursorPos);
+                    m_HoveredSection = GetNearestSection(rotation);
+
+                    SelectButton(m_RadialButtons[m_HoveredSection]);
+                }
+                else if (m_CursorPos.magnitude <= 0.3)
                 {
-                    SelectButton(m_nextPage);
-                    hoveredSection = SECTIONS + 1;
+                    if (m_CursorPos.x < 0)
+                    {
+                        SelectButton(m_PreviousPage);
+                        m_HoveredSection = SECTIONS;
+                    }
+                    else if (m_CursorPos.x > 0)
+                    {
+                        SelectButton(m_NextPage);
+                        m_HoveredSection = SECTIONS + 1;
+                    }
+                }
+                else
+                {
+                    m_HoveredSection = -1;
+                    DisableAllSelections();
                 }
             }
             else
             {
-                hoveredSection = -1;
+                m_HoveredSection = -1;
                 DisableAllSelections();
             }
-
-            SetCursorPosition(pos);
-            SetCursorActive(true);
         }
         else
         {
-            hoveredSection = -1;
+            m_HoveredSection = -1;
             SetCursorActive(false);
         }
 
-        var menuClickAction = GetInputAction(m_menuClick);
+        var menuClickAction = GetInputAction(m_MenuClick);
         if (menuClickAction != null && menuClickAction.triggered)
         {
             // Handle Click
-            if (hoveredSection != -1 && hoveredSection < SECTIONS)
+            if (m_HoveredSection != -1 && m_HoveredSection < SECTIONS)
             {
                 // Get sections at virtual index
-                var vindex = SECTIONS * currentPage + hoveredSection;
-                if (vindex < currentSections.Count)
+                var vindex = SECTIONS * m_CurrentPage + m_HoveredSection;
+                if (vindex < m_CurrentSections.Count && m_CurrentSections[vindex] != null)
                 {
-                    var children = currentSections[vindex].childSections;
+                    var children = m_CurrentSections[vindex].childSections;
                     if (children != null)
                     {
-                        prettyHeading = currentSections[hoveredSection].title;
-                        currentSections = children;
+                        m_PrettyHeading = m_CurrentSections[m_HoveredSection].title;
+                        m_CurrentSections = children;
                         ShowPage();
                     }
-                    else if (currentSections[vindex].title == "CANCEL")
+                    else if (m_CurrentSections[vindex].title == "CANCEL") // TODO: Find better Check
                     {
                         CloseMenu();
                     }
                 }
             }
-            else if (hoveredSection == SECTIONS)
+            else if (m_HoveredSection == SECTIONS)
             {
                 // Go to prev page
-                if (currentPage > 0)
+                if (m_PreviousPage.activeSelf)
                 {
-                    currentPage -= 1;
+                    m_CurrentPage -= 1;
                     ShowPage();
                 }
             }
-            else if (hoveredSection == SECTIONS + 1)
+            else if (m_HoveredSection == SECTIONS + 1)
             {
-                if (SECTIONS * (currentPage + 1) < currentSections.Count)
+                if (m_NextPage.activeSelf)
                 {
                     // Go to next page
-                    currentPage += 1;
+                    m_CurrentPage += 1;
                     ShowPage();
                 }
             }
         }
-
     }
 
     private void ShowPage()
     {
         for (int i = 0; i < SECTIONS; i++)
         {
-            var virtualIndex = SECTIONS * currentPage + i;
-            if (virtualIndex < currentSections.Count && currentSections[virtualIndex] != null)
-                m_RadialButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = currentSections[virtualIndex].title;
+            var virtualIndex = SECTIONS * m_CurrentPage + i;
+            if (virtualIndex < m_CurrentSections.Count && m_CurrentSections[virtualIndex] != null)
+                m_RadialButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = m_CurrentSections[virtualIndex].title;
             else
                 m_RadialButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = "";
         }
-        m_heading.GetComponent<TextMeshProUGUI>().text = prettyHeading;
+        m_Heading.GetComponent<TextMeshProUGUI>().text = m_PrettyHeading;
+
+        // Activate/Deactivate Prev/Next Buttons
+        m_NextPage.SetActive(SECTIONS * (m_CurrentPage + 1) < m_CurrentSections.Count);
+        m_PreviousPage.SetActive(m_CurrentPage > 0);
     }
 
     private float GetDegree(Vector2 direction)
@@ -261,7 +289,7 @@ public class RadialMenuController : MonoBehaviour
 
     private int GetNearestSection(float rotation)
     {
-        return Mathf.RoundToInt(rotation / degreeIncrement) % 8;
+        return Mathf.RoundToInt(rotation / m_DegreeIncrement) % 8;
     }
 
     private void SelectButton(GameObject obj)
@@ -276,12 +304,13 @@ public class RadialMenuController : MonoBehaviour
         myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>().SetSelectedGameObject(null);
     }
 
-    private void SetCursorActive(bool value) => m_cursor.SetActive(value);
+    private void SetCursorActive(bool value) => m_Cursor.SetActive(value);
 
-    private void SetCursorPosition(Vector2 position) => m_cursor.transform.localPosition = 200 * position;
+    private void SetCursorPosition(Vector2 position) => m_Cursor.transform.localPosition = 200 * position;
 
     private void CloseMenu()
     {
+        DisableAllSelections();
         gameObject.GetComponent<Canvas>().enabled = false;
     }
 

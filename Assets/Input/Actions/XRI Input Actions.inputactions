@@ -156,26 +156,34 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Edit Select",
+                    "name": "Radial Mode Activate",
                     "type": "Button",
-                    "id": "a9d6cd3a-7c11-48b6-95bd-0d290cd5fca8",
+                    "id": "d4be3bf6-2384-427e-90ba-7a2e8261b32a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
                 },
                 {
-                    "name": "Edit Mode Activate",
+                    "name": "Radial Mode Cancel",
                     "type": "Button",
-                    "id": "41791919-5085-41ae-8fbd-76d014cf3541",
+                    "id": "64f0258d-708b-4684-95cc-ba34e47e0bbe",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
                 },
                 {
-                    "name": "Edit Mode Cancel",
+                    "name": "Radial Select",
                     "type": "Button",
-                    "id": "f852d34b-6771-4bbc-9d87-c7799c059897",
+                    "id": "272c12ca-a398-4fa4-b44b-e33b07d47a24",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Control",
+                    "type": "Value",
+                    "id": "274d24f6-0041-453c-8062-a25f615b9930",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": ""
                 }
@@ -502,47 +510,91 @@
                 },
                 {
                     "name": "",
-                    "id": "829a1e48-b1b4-4dbb-ae83-b1a2c7db3358",
-                    "path": "<XRController>{LeftHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=2)",
+                    "id": "3b9a57f4-e74e-421f-9c7d-6f0090bacd50",
+                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "interactions": "",
                     "processors": "",
-                    "groups": "Noncontinuous Move",
-                    "action": "Edit Mode Activate",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Mode Activate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "ca550d49-6fc4-45d9-8886-4155b9080f7c",
+                    "id": "070ac92b-9a99-48e2-8e60-4c7a819f7682",
                     "path": "<XRController>{LeftHand}/gripPressed",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Edit Mode Cancel",
+                    "action": "Radial Mode Cancel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "c0cfd646-5f58-4f64-9fa1-cdfd74153d64",
-                    "path": "<XRController>{LeftHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=-1,sweepBehavior=3)",
-                    "processors": "",
-                    "groups": "Noncontinuous Move",
-                    "action": "Edit Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "94c2c7f5-5d70-4df9-bde9-2902f3840f87",
-                    "path": "<XRController>{LeftHand}/primaryButton",
+                    "id": "b5c6efda-3de8-4b2a-bc62-8836443eceb4",
+                    "path": "<XRController>{LeftHand}/trackpadClicked",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Edit Select",
+                    "action": "Radial Select",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "e4d98589-00fa-42e3-b92e-f4323cc04ed8",
+                    "path": "2DVector(mode=2)",
+                    "interactions": "",
+                    "processors": "StickDeadzone",
+                    "groups": "",
+                    "action": "Radial Control",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "e59d544f-b899-47b4-ae02-3541fa915bb4",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis/y",
+                    "interactions": "",
+                    "processors": "Clamp(max=1)",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Control",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "3e101a7d-1637-4f4e-91f0-b07f4d872c41",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis/y",
+                    "interactions": "",
+                    "processors": "Clamp(min=-1),Invert",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Control",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "ff42cb0c-a14c-4895-8dd0-1a294e45563b",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis/x",
+                    "interactions": "",
+                    "processors": "Clamp(min=-1),Invert",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Control",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "5556762e-ec64-407c-91c4-77ec6c95289f",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis/x",
+                    "interactions": "",
+                    "processors": "Clamp(max=1)",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Control",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },
@@ -657,7 +709,7 @@
                 {
                     "name": "Radial Mode Activate",
                     "type": "Button",
-                    "id": "68a00e99-bd26-4b13-90ec-d5e8af6be09b",
+                    "id": "6b12640b-d5d6-4b9e-8161-52b3b641e6c8",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -665,7 +717,15 @@
                 {
                     "name": "Radial Mode Cancel",
                     "type": "Button",
-                    "id": "324902bd-99a3-4d39-9b67-9a21a818eae7",
+                    "id": "819b0a51-63f5-4e40-a984-80c333663b88",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Radial Select",
+                    "type": "Button",
+                    "id": "1bd752ca-41f2-49a5-baa8-5a918fa39ca9",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -673,16 +733,8 @@
                 {
                     "name": "Radial Control",
                     "type": "Value",
-                    "id": "4b985fbd-667a-46dc-98d4-147d9df58611",
+                    "id": "d8bd2d0a-9d97-4ac3-9a50-1a36913dc002",
                     "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Radial Click",
-                    "type": "Button",
-                    "id": "4b6f9cdb-7ac9-4a7c-9c7b-789ca04d953f",
-                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
                 }
@@ -997,41 +1049,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "",
-                    "id": "bb595b65-6354-4bd3-bbe4-f87f3f13d1bf",
-                    "path": "<XRController>{RightHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=2,sweepBehavior=3)",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Radial Mode Activate",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "db32b1b9-ace8-4d88-9c12-f8adef1f3a32",
-                    "path": "<XRController>{RightHand}/gripPressed",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Radial Mode Cancel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "95718ddd-beee-446d-b49f-7119ff221986",
-                    "path": "<XRController>{RightHand}/primaryButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Radial Mode Activate",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
                     "name": "2D Vector",
-                    "id": "1d5a0322-86b5-41ef-9974-723dd965c39e",
+                    "id": "cd980aa2-3a77-407b-b4fb-c80253e283c9",
                     "path": "2DVector(mode=2)",
                     "interactions": "",
                     "processors": "StickDeadzone",
@@ -1042,7 +1061,7 @@
                 },
                 {
                     "name": "up",
-                    "id": "3ef6940c-9069-461f-918d-daf68e48ae8e",
+                    "id": "52886eeb-5432-49ed-97ef-469d4a66e652",
                     "path": "<XRController>{RightHand}/Primary2DAxis/y",
                     "interactions": "",
                     "processors": "Clamp(max=1)",
@@ -1053,7 +1072,7 @@
                 },
                 {
                     "name": "down",
-                    "id": "8f61e17d-3a61-4ec7-a1b1-8e84b6ccd794",
+                    "id": "a2ceb662-99d2-4ec0-bbb3-adeedc681687",
                     "path": "<XRController>{RightHand}/Primary2DAxis/y",
                     "interactions": "",
                     "processors": "Clamp(min=-1),Invert",
@@ -1064,7 +1083,7 @@
                 },
                 {
                     "name": "left",
-                    "id": "f91ed705-3593-4192-aa69-b03402010194",
+                    "id": "87197e2f-c208-4c4b-9cdd-1738f26f4839",
                     "path": "<XRController>{RightHand}/Primary2DAxis/x",
                     "interactions": "",
                     "processors": "Clamp(min=-1),Invert",
@@ -1075,7 +1094,7 @@
                 },
                 {
                     "name": "right",
-                    "id": "66fa9400-8a60-4e98-9057-15475dc80988",
+                    "id": "cdf2b898-4cc0-49b6-ae99-c45b34bac13c",
                     "path": "<XRController>{RightHand}/Primary2DAxis/x",
                     "interactions": "",
                     "processors": "Clamp(max=1)",
@@ -1086,12 +1105,34 @@
                 },
                 {
                     "name": "",
-                    "id": "e8d3c782-834f-4c3d-ab43-c2cfebf41cfd",
+                    "id": "14b00738-1031-44d1-9950-8db10133951f",
                     "path": "<XRController>{RightHand}/trackpadClicked",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
-                    "action": "Radial Click",
+                    "action": "Radial Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1290c321-ddca-4879-9f30-a1415b5a185e",
+                    "path": "<XRController>{RightHand}/gripPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Mode Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "91e4db9b-0d08-41b5-bc55-13347495cb5f",
+                    "path": "<XRController>{RightHand}/triggerPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Radial Mode Activate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
