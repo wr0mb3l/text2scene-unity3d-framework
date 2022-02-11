@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
-
+/***********************************************************************
+    QuickTreeNodeVisualizer controls display of token
+***********************************************************************/
 public class QuickTreeNodeVisualizer : MonoBehaviour
 {
     public GameObject MainNode;

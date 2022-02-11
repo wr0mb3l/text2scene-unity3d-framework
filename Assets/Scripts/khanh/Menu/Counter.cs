@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-
+/***********************************************************************
+    Counter controller with reference to increment/decrement buttons
+***********************************************************************/
 public class Counter : MonoBehaviour
 {
     [SerializeField]
