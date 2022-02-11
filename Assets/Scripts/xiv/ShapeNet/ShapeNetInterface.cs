@@ -187,6 +187,12 @@ public class ShapeNetInterface : Interface
         }
     }
 
+    protected override IEnumerator InitializeInternal()
+    {
+        Name = "ShapeNet";
+        yield break;
+    }
+
     private void InitializeCache()
     {
         InitStatus = "Initializing cached model map...";
