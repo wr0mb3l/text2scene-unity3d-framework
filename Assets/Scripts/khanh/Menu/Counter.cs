@@ -50,8 +50,10 @@ public class Counter : MonoBehaviour
     {
         ValueDisplay.enabled = false;
         ValueText = ValueDisplay.GetComponentInChildren<Text>();
-        Value = MinValue;
+        if (ValueText != null) Value = MinValue;
         IncrementButton.onClick.AddListener(Increment);
         DecrementButton.onClick.AddListener(Decrement);
     }
+
+
 }
