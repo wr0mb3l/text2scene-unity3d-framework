@@ -20,24 +20,19 @@ public static class TransformEx
 public class AnnotationMenu : Menu
 {
     AnnotationDocument Document;
-    IsoSignal Signals;
-    IsoEvent Events;
-    IsoSpatialEntity SpatialEntitys;
-    IsoLocation Locations;
 
     public Counter PageNavigator;
     public Counter SentenceCounter;
     public GameObject QuickTreeNodePrefab;
     public GameObject TextButtonPrefab;
+    public List<IsoEntity> EmptyTokenObjects { get; private set; }
+    public Transform EmptyTokenContainer;
+    public Transform TokenContainer;
 
+    private int EmptyTokenPointer = 0;
     private List<Sentence> Sentences;
-    public Transform AnnotationContent;
-    public Transform ColorPallete;
-
     private Type[] Isotypes;
-    GameObject NewLine;
-    string[] TestString = new string[] { "Datmaniac", "is", "da best", "in the house", "regweg", "rwgrw", "."};
-    string[] TestString2 = new string[] { "Furthermore", ",", "none is better" };
+
     void OnEnable()
     {
         var textAnnotatorInterface = MenuController.GetTextAnnotatorInterface();
@@ -45,8 +40,6 @@ public class AnnotationMenu : Menu
         LoadDocument(textAnnotatorInterface.ActualDocument.Document);
         PageNavigator.OnValueChanged.AddListener(UpdateTokenContainer);
         SentenceCounter.OnValueChanged.AddListener(UpdateTokenContainer);
-        
-        
     }
 
     public void LoadDocument(AnnotationDocument doc)
@@ -55,41 +48,26 @@ public class AnnotationMenu : Menu
         Sentences = new List<Sentence>(Document.GetElementsOfType<Sentence>());
         var excludedTypes = new System.Type[] { typeof(AnnotationToken), typeof(QuickTreeNode) };
         Isotypes = Document.Type_Map.Keys.Where(type => !excludedTypes.Contains(type)).ToArray();
-        //GenerateColorPalete();
+        EmptyTokenObjects = new List<IsoEntity>(Document.GetElementsOfTypeFromTo<IsoEntity>(0, 0, true));
+        Debug.Log(EmptyTokenObjects.Count());
         UpdateTokenContainer();
+        UpdateEmptyTokenContainer();
     }
 
-    void GenerateAnnotationText(QuickTreeNode token, Color color)
+    GameObject GenerateTokenObject(AnnotationBase token, Color color, Transform container)
     {
-        GameObject QuickTreeNodeObj = Instantiate(QuickTreeNodePrefab, AnnotationContent) as GameObject;
+        GameObject QuickTreeNodeObj = Instantiate(QuickTreeNodePrefab, container) as GameObject;
         QuickTreeNodeObj.name = token.TextContent;
         var visualizer = QuickTreeNodeObj.GetComponent<QuickTreeNodeVisualizer>();
         visualizer.Init(token, color);
-    }
-
-    void GenerateColorPalete()
-    {
-        foreach (var type in Isotypes)
-        {
-            Debug.Log(type.Name);
-            var color = type?.GetProperty("ClassColor")?.GetValue(null);
-            if (color != null)
-            {
-                var GO = Instantiate(TextButtonPrefab, ColorPallete);
-                Text txt = GO.GetComponentInChildren<Text>();
-                Image img = GO.GetComponent<Image>();
-                txt.text = type.Name;
-                txt.color = Color.white;
-                img.color = (Color) color;
-            }
-        }
+        return QuickTreeNodeObj;
     }
 
     void GenerateNewLine()
     {
         var NewLine = new GameObject("NewLine", typeof(RectTransform));
         NewLine.GetComponent<RectTransform>().sizeDelta = new Vector2(900, 5);
-        Instantiate(NewLine, AnnotationContent);
+        Instantiate(NewLine, TokenContainer);
     }
     void OnDisable()
     {
@@ -98,7 +76,7 @@ public class AnnotationMenu : Menu
     }
     void UpdateTokenContainer()
     {
-        AnnotationContent.transform.Clear();
+        TokenContainer.transform.Clear();
         var sentencePerPage = SentenceCounter.Value;
         PageNavigator.MaxValue = (Document.SentenceCount + sentencePerPage - 1) / sentencePerPage;
         if (PageNavigator.Value > PageNavigator.MaxValue) PageNavigator.Value = PageNavigator.MaxValue;
@@ -110,19 +88,35 @@ public class AnnotationMenu : Menu
         foreach (Sentence st in sentences)
         {
             var nodes = st.GetVisibleQuickTreeNodes();
-            var emptyNodes = nodes.Where(node => node.Begin == 0 && node.End == 0);
-            Debug.Log(emptyNodes.Count());
             foreach (var node in nodes)
             {
                 Color color;
                 var element = Document.GetElementsOfTypes(Isotypes, node.Begin, node.End);
                 if (element == null) color = Color.white;
                 else color = (Color) element?.GetType().GetProperty("ClassColor").GetValue(null);
-                GenerateAnnotationText(node, color);
+                GenerateTokenObject(node, color, TokenContainer);
             }
             GenerateNewLine();
         }
-        RefreshLayoutGroupsImmediateAndRecursive(AnnotationContent.gameObject);
+        RefreshLayoutGroupsImmediateAndRecursive(TokenContainer.gameObject);
+    }
+
+    void UpdateEmptyTokenContainer()
+    {
+        EmptyTokenContainer.transform.Clear();
+        foreach (IsoEntity et in EmptyTokenObjects)
+        {
+            GenerateTokenObject(et, Color.white, EmptyTokenContainer);
+        } 
+        
+    }
+
+    void AddEmptyToken()
+    {
+        // AnnotationBase parent, int ID, int begin, int end, string comment, string mod, 
+        // string object_ID, IsoVector3 position, IsoVector4 rotation, IsoVector3 scale, List<IsoObjectAttribute> object_feature, string class_type
+        // var emptyToken = new 
+        UpdateEmptyTokenContainer();
     }
 
     public void RefreshLayoutGroupsImmediateAndRecursive(GameObject root)

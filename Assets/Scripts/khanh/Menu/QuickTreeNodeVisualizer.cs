@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
+
 public class QuickTreeNodeVisualizer : MonoBehaviour
 {
     public GameObject MainNode;
     public GameObject ButtonTextPrefab;
     public GameObject ChildrenNodeContainer;
-    public QuickTreeNode QuickTreeNode { get; private set; }
+    public AnnotationBase _token { get; private set; }
     public IsoEntity Entity { get; private set; }
 
     private bool showChildContainer = false;
-    public void Init(QuickTreeNode token, Color color)
+    public void Init(AnnotationBase token, Color color)
     {
-        QuickTreeNode = token;
+        _token = token;
         setToken(color);
         var subnodes = token.TextContent.Split(' ');
         if (subnodes.Length > 1)
@@ -43,17 +45,16 @@ public class QuickTreeNodeVisualizer : MonoBehaviour
     void setToken(Color color)
     {
         TextMeshProUGUI text = MainNode.GetComponentInChildren<TextMeshProUGUI>();
-        text.text = QuickTreeNode.TextContent;
-        if (color == null) text.color = Color.black;
-        else text.color = color;
+        text.text = string.Join(" ", _token.TextContent.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries));  ;
+        text.color = color;
     }
 
     public bool HasEntityToken { get { return Entity != null; } }
-    public bool HasQuickTreeNode { get { return QuickTreeNode != null; } }
+    public bool HasQuickTreeNode { get { return _token != null; } }
     public IsoEntity GetEntity()
     {
         if (HasEntityToken) return Entity;
-        else if (HasQuickTreeNode) return QuickTreeNode.IsoEntity;
+        //else if (HasQuickTreeNode) return QuickTreeNode.IsoEntity;
         else return null;
     }
 
