@@ -24,32 +24,10 @@ public class RadialMenuData
         }
     }
 
-    public static Dictionary<string, MenuType> m_radialLayerMap = new Dictionary<string,MenuType>();
-    public static Dictionary<string, MenuType> RadialLayerMap
-    {
-        get
-        {
-            if (m_radialLayerMap == null) Init_LayerMap();
-            return m_radialLayerMap;
-        }
-    }
-
 
     static RadialMenuData()
     {
         Init();
-
-        Init_LayerMap();
-    }
-
-    private static void Init_LayerMap()
-    {
-        m_radialLayerMap = new Dictionary<string, MenuType>();
-
-        // Add Corresponding Layers and their menu types here.
-        m_radialLayerMap.Add("Link", MenuType.IsoLinks);
-        m_radialLayerMap.Add("SpatialEntity", MenuType.SpatialEntity);
-        m_radialLayerMap.Add("IsoPlaceTypes", MenuType.IsoPlaceTypes);
     }
 
     private static void Init()
@@ -588,21 +566,5 @@ public class RadialMenuData
         m_radialMenuMap.Add(MenuType.IsoPlaceContinent, entitytypes);
     }
 
-    public static List<RadialSection> GetMenuFromInteractionLayerMask(XRBaseInteractable interactable)
-    {
-        var layerMask = interactable.interactionLayerMask;
-        List<RadialSection> menus = new List<RadialSection>();
-
-        foreach (string layer in m_radialLayerMap.Keys)
-        {
-            if (layerMask == (layerMask | (1 << LayerMask.NameToLayer(layer))))
-            {
-                foreach (RadialSection section in m_radialMenuMap[m_radialLayerMap[layer]])
-                {
-                    menus.Add(section);
-                }
-            }
-        }
-        return menus;
-    }
+    public static List<RadialSection> GetMenu(MenuType type) => m_radialMenuMap[type];
 }

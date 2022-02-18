@@ -2104,9 +2104,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e25579d0cc16bfb458b0f1d5276ba954, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Keyboard: 1
   m_MenuSelectAxis: {fileID: 9057214353677490434, guid: 46ce647826c99e94f980c3bc776e7578,
     type: 3}
+  m_SelectAxisDeltaInput: 1
   m_MenuClick: {fileID: 7635581932452181987, guid: 46ce647826c99e94f980c3bc776e7578,
     type: 3}
   m_Interactor: {fileID: 1964482860857289014}
@@ -3132,7 +3132,7 @@ MonoBehaviour:
     type: 3}
   m_RotateCamera: {fileID: -6309325561833473124, guid: 46ce647826c99e94f980c3bc776e7578,
     type: 3}
-  m_Move: {fileID: 0}
+  m_Move: {fileID: -1101711432596910331, guid: 46ce647826c99e94f980c3bc776e7578, type: 3}
   m_TranslateAnchor: {fileID: 6762167163630899978, guid: 46ce647826c99e94f980c3bc776e7578,
     type: 3}
   m_RotateAnchor: {fileID: -4993316167254935973, guid: 46ce647826c99e94f980c3bc776e7578,

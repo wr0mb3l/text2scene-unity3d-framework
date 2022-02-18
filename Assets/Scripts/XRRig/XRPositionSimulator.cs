@@ -11,8 +11,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
     public class XRPositionSimulator : MonoBehaviour
     {
-        public GameObject dataBrowser;
-
         /// <summary>
         /// The coordinate space in which to operate.
         /// </summary>
@@ -81,24 +79,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 UnsubscribeKeyboardZTranslateAction();
                 m_KeyboardZTranslateAction = value;
                 SubscribeKeyboardZTranslateAction();
-            }
-        }
-
-        [SerializeField]
-        [Tooltip("The Input System Action used to enable manipulation of the HMD while held. Must be a Button Control.")]
-        InputActionReference m_ManipulateHeadAction;
-        /// <summary>
-        /// The Input System Action used to enable manipulation of the HMD while held.
-        /// Must be a <see cref="ButtonControl"/>.
-        /// </summary>
-        public InputActionReference manipulateHeadAction
-        {
-            get => m_ManipulateHeadAction;
-            set
-            {
-                UnsubscribeManipulateHeadAction();
-                m_ManipulateHeadAction = value;
-                SubscribeManipulateHeadAction();
             }
         }
 
@@ -249,14 +229,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         float m_KeyboardYTranslateInput;
         float m_KeyboardZTranslateInput;
 
-        bool m_ManipulateLeftInput;
-        public bool m_ManipulateHeadInput = true;
-
         Vector2 m_MouseDeltaInput;
-
-        bool m_GripInput;
-        bool m_TriggerInput;
-
         Vector3 m_CenterEyeEuler;
 
         XRSimulatedHMDState m_HMDState;
@@ -284,7 +257,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             SubscribeKeyboardYTranslateAction();
             SubscribeKeyboardZTranslateAction();
             SubscribeMouseDeltaAction();
-            SubscribeManipulateHeadAction();
         }
 
         protected virtual void OnDisable()
@@ -295,7 +267,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             UnsubscribeKeyboardYTranslateAction();
             UnsubscribeKeyboardZTranslateAction();
             UnsubscribeMouseDeltaAction();
-            UnsubscribeManipulateHeadAction();
         }
 
         protected virtual void Update()
@@ -333,12 +304,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             Vector3 anglesDelta;
             anglesDelta = new Vector3(scaledMouseDeltaInput.y, scaledMouseDeltaInput.x, 0f);
 
-        //     if (m_ManipulateHeadInput)
-        //     {
-        //         m_CenterEyeEuler += anglesDelta;
-        //         m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
-        //     }
-        // }
             Vector3 temp = m_CenterEyeEuler + anglesDelta;
 
             // Clamp and normalize Rotation so that y and z are in [0,360)
@@ -404,9 +369,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void SubscribeKeyboardZTranslateAction() => Subscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
         void UnsubscribeKeyboardZTranslateAction() => Unsubscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
 
-        void SubscribeManipulateHeadAction() => Subscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed);
-        void UnsubscribeManipulateHeadAction() => Unsubscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed);
-
         void SubscribeMouseDeltaAction() => Subscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
         void UnsubscribeMouseDeltaAction() => Unsubscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
 
@@ -418,15 +380,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnKeyboardZTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardZTranslateInput = context.ReadValue<float>();
         void OnKeyboardZTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardZTranslateInput = 0f;
-
-        void OnManipulateHeadPerformed(InputAction.CallbackContext context) => tmpMenu();//m_ManipulateHeadInput = !m_ManipulateHeadInput;
-
-        void tmpMenu()
-        {
-            // dataBrowser.SetActive(!dataBrowser.activeInHierarchy);
-            dataBrowser.transform.position = new Vector3(cameraTransform.position.x, cameraTransform.position.y, cameraTransform.position.z) + cameraTransform.forward;
-            dataBrowser.transform.rotation = cameraTransform.rotation;
-        }
 
         void OnMouseDeltaPerformed(InputAction.CallbackContext context) => m_MouseDeltaInput = context.ReadValue<Vector2>();
         void OnMouseDeltaCanceled(InputAction.CallbackContext context) => m_MouseDeltaInput = Vector2.zero;

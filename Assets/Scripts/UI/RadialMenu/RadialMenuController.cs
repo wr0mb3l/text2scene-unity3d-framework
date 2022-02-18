@@ -9,18 +9,6 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class RadialMenuController : MonoBehaviour
 {
     [SerializeField]
-    [Tooltip("Is this used on a Keyboard Rig?")]
-    bool m_Keyboard;
-    /// <summary>
-    /// Is this used on a Keyboard Rig?
-    /// </summary>
-    public bool keyboard
-    {
-        get => m_Keyboard;
-        set => m_Keyboard = value;
-    }
-
-    [SerializeField]
     [Tooltip("The reference to the action of choosing a radial menu option for this controller.")]
     InputActionReference m_MenuSelectAxis;
     /// <summary>
@@ -30,6 +18,18 @@ public class RadialMenuController : MonoBehaviour
     {
         get => m_MenuSelectAxis;
         set => m_MenuSelectAxis = value;
+    }
+
+    [SerializeField]
+    [Tooltip("Menu Select Axis Input is given as difference to previous frame instead of an absolute value.")]
+    bool m_SelectAxisDeltaInput;
+    /// <summary>
+    /// Menu Select Axis Input is given as difference to previous frame instead of an absolute value.
+    /// </summary>
+    public bool deltaInput
+    {
+        get => m_SelectAxisDeltaInput;
+        set => m_SelectAxisDeltaInput = value;
     }
 
     [SerializeField]
@@ -129,7 +129,7 @@ public class RadialMenuController : MonoBehaviour
         m_SelectedObject = targets[0].transform.gameObject;
 
         // Get appropriate menu according to layer
-        m_RadialSections = RadialMenuData.GetMenuFromInteractionLayerMask(targets[0]);
+        m_RadialSections = RadialMenuData.GetMenu(targets[0].GetComponent<RadialMenuOptions>().menuType);
 
         m_CurrentSections = m_RadialSections;
 
@@ -160,7 +160,7 @@ public class RadialMenuController : MonoBehaviour
         {
             Vector2 pos = menuSelectAction.ReadValue<Vector2>();
 
-            if (keyboard)
+            if (m_SelectAxisDeltaInput)
             {
                 // Add new Input to current position
                 m_CursorPos += Time.deltaTime * pos;
