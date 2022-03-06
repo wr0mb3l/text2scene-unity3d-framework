@@ -68,6 +68,7 @@ public class AnnotationMenu : Menu
         var NewLine = new GameObject("NewLine", typeof(RectTransform));
         NewLine.GetComponent<RectTransform>().sizeDelta = new Vector2(900, 5);
         Instantiate(NewLine, TokenContainer);
+        Destroy(NewLine);
     }
     void OnDisable()
     {
