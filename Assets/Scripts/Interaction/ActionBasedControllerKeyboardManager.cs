@@ -231,28 +231,28 @@ public class ActionBasedControllerKeyboardManager : MonoBehaviour
     }
 
     // Object control actions
-    [SerializeField, FormerlySerializedAs("m_TranslateObject")]
-    [Tooltip("The reference to the action of translating the selected object of this controller.")]
-    InputActionReference m_TranslateAnchor;
+    [SerializeField]
+    [Tooltip("The reference to the action of modifying the selected object based on the current interaction mode.")]
+    InputActionReference m_InteractionAxis;
     /// <summary>
-    /// The reference to the action of translating the selected object of this controller.
+    /// The reference to the action of modifying the selected object based on the current interaction mode.
     /// </summary>
-    public InputActionReference translateAnchor
+    public InputActionReference interactionAxis
     {
-        get => m_TranslateAnchor;
-        set => m_TranslateAnchor = value;
+        get => m_InteractionAxis;
+        set => m_InteractionAxis = value;
     }
 
-    [SerializeField, FormerlySerializedAs("m_RotateObject")]
-    [Tooltip("The reference to the action of rotating the selected object of this controller.")]
-    InputActionReference m_RotateAnchor;
+    [SerializeField]
+    [Tooltip("The reference to the action of switching the interact mode with the currently selected object.")]
+    InputActionReference m_SwitchInteractMode;
     /// <summary>
-    /// The reference to the action of rotating the selected object of this controller.
+    /// The reference to the action of switching the interact mode with the currently selected object.
     /// </summary>
-    public InputActionReference rotateAnchor
+    public InputActionReference switchInteractMode
     {
-        get => m_RotateAnchor;
-        set => m_RotateAnchor = value;
+        get => m_SwitchInteractMode;
+        set => m_SwitchInteractMode = value;
     }
 
     [Space]
@@ -536,15 +536,15 @@ public class ActionBasedControllerKeyboardManager : MonoBehaviour
     void OnEnterInteractState(StateId previousStateId)
     {
         // Enable object control actions
-        EnableAction(m_TranslateAnchor);
-        EnableAction(m_RotateAnchor);
+        EnableAction(m_InteractionAxis);
+        EnableAction(m_SwitchInteractMode);
     }
 
     void OnExitInteractState(StateId nextStateId)
     {
         // Disable object control actions
-        DisableAction(m_TranslateAnchor);
-        DisableAction(m_RotateAnchor);
+        DisableAction(m_InteractionAxis);
+        DisableAction(m_SwitchInteractMode);
     }
 
     void OnEnterRadialState(StateId previousStateId)
@@ -595,7 +595,7 @@ public class ActionBasedControllerKeyboardManager : MonoBehaviour
 
         if (triggerRadialMode && !cancelRadial && targets.Count > 0)
         {
-            // Check if hit object has EditInteractable Component
+            // Check if hit object has RadialMenuOptions Component
             if (targets[0].GetComponent<RadialMenuOptions>() != null)
             {
                 TransitionState(m_SelectState, m_RadialState);

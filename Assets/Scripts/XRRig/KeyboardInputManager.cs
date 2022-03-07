@@ -39,10 +39,5 @@ public class KeyboardInputManager : MonoBehaviour
             m_InputActionManager.EnableInput();
             m_InputActive = true;
         }
-
-        if (currentSelected != null && currentSelected.GetComponent<InputField>() == null)
-        {
-            Debug.Log(currentSelected.gameObject);
-        }
     }
 }

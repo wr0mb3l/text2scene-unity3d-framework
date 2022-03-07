@@ -417,6 +417,7 @@ public class ShapeNetInterface : Interface
                 catch (Exception e)
                 {
                     Debug.Log("Could not parse Thumbnails. Updating " + thumbnailType.ToLower() + " thumbnails...");
+                    Debug.LogError(e);
                     fileStream = new FileStream(_path, FileMode.Create);
                     update = true;
                 }
@@ -432,6 +433,7 @@ public class ShapeNetInterface : Interface
                     InitStatus = "Downloading " + thumbnailType.ToLower() + " thumbnails:\n" +
                                      (int)(request.downloadedBytes / Mathf.Pow(10, 6) * 100) / 100f + " MB of " +
                                      (int)(JSONSize / Mathf.Pow(10, 6) * 100) / 100f + " MB";
+                    Debug.Log(InitStatus);
                     yield return null;
                 }
                 InitStatus = "Downloading " + thumbnailType.ToLower() + " thumbnails:\n" +
