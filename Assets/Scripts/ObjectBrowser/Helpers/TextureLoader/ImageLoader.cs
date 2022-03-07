@@ -2,10 +2,7 @@
  * Created by Dummiesman 2013-2019
  * Thanks to mikezila for improving the initial TGA loading code
 */
-
-using System;
 using UnityEngine;
-using System.Collections;
 using System.IO;
 using B83.Image.BMP;
 
@@ -41,7 +38,6 @@ namespace Dummiesman
             CRN
         }
 
-
         /// <summary>
         /// Loads a texture from a stream
         /// </summary>
@@ -76,7 +72,6 @@ namespace Dummiesman
                 return null;
             }
         }
-
       
         /// <summary>
         /// Loads a texture from a file
@@ -153,6 +148,5 @@ namespace Dummiesman
 
             return returnTex;
         }
-
     }
 }

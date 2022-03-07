@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -71,12 +70,10 @@ public class DataBrowserFilterController : MonoBehaviour
                 if (cb.GetComponent<Image>().sprite == Unchecked)
                 {
                     dataFilter.Status = ShapeNetInterface.CheckboxStatus.AllChecked;
-                    // cb.GetComponent<Image>().sprite = Checked;
                 }
                 else
                 {
                     dataFilter.Status = ShapeNetInterface.CheckboxStatus.NoneChecked;
-                    // cb.GetComponent<Image>().sprite = Unchecked;
                 }
                 CheckboxUpdater((string)dataFilter.ButtonValue, dataFilter.Status);
                 Browser.BrowserUpdater?.Invoke();
@@ -135,17 +132,14 @@ public class DataBrowserFilterController : MonoBehaviour
         {
             if (status == ShapeNetInterface.CheckboxStatus.AllChecked)
             {
-                // cb.GetComponent<Image>().sprite = Checked;
                 cb.transform.parent.GetComponent<DataFilter>().Status = ShapeNetInterface.CheckboxStatus.AllChecked;
             }
             if (status == ShapeNetInterface.CheckboxStatus.NoneChecked)
             {
-                // cb.GetComponent<Image>().sprite = Unchecked;
                 cb.transform.parent.GetComponent<DataFilter>().Status = ShapeNetInterface.CheckboxStatus.NoneChecked;
             }
             if (status == ShapeNetInterface.CheckboxStatus.PartsChecked)
             {
-                // cb.GetComponent<Image>().sprite = Mixed;
                 cb.transform.parent.GetComponent<DataFilter>().Status = ShapeNetInterface.CheckboxStatus.PartsChecked;
             }
         }

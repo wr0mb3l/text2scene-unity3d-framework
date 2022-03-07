@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using LitJson;
@@ -25,7 +24,6 @@ public class ShapeNetObject : Data
                 PrettyCategories += json["categories"][i].ToString();
                 if (i < json["categories"].Count - 1) PrettyCategories += ", ";
             }
-
         }
     }
 
@@ -35,7 +33,6 @@ public class ShapeNetObject : Data
         if (DataContainer == null) return;
         DataContainer.Name.text = Name;
         DataContainer.DataType.text = PrettyCategories;
-        // DataContainer.DataTextIcon.gameObject.SetActive(false);
         DataContainer.Thumbnail.enabled = true;
         if (Thumbnail != null)
         {

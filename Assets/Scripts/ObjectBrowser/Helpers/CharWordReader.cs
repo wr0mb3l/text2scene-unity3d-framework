@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System.Text;
 
 namespace Dummiesman {
 	public class CharWordReader {
@@ -83,6 +80,7 @@ namespace Dummiesman {
 
 			return true;
 		}
+        
         public string GetString(int startIndex = 0) {
             if (startIndex >= this.wordSize - 1) {
                 return string.Empty;

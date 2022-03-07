@@ -30,8 +30,6 @@ public class ResourceData : Data
         }
     }
 
-    //public ResourceData(string name, string path, ResourceData parent, string id, DateTime createdOn, 
-    //                      DateTime lastChange, CityScript city, CityScript.SourceType source = CityScript.SourceType.None)
     public ResourceData(string name, string path, ResourceData parent, object id, DateTime createdOn,
                           DateTime lastChange, SourceType source)
     {

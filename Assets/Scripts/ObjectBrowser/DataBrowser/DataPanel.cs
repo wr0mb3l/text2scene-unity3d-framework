@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
-using UnityEngine.XR.Interaction.Toolkit;
 
 public class DataPanel : MonoBehaviour
 {
@@ -70,7 +67,6 @@ public class DataPanel : MonoBehaviour
         PreviousSite.gameObject.SetActive(status);
         NextSite.gameObject.SetActive(status);
         ParentDir.gameObject.SetActive(status);
-        // Root.gameObject.SetActive(status);
         foreach (DataContainer dc in DataContainers)
             dc.gameObject.SetActive(status);
     }
@@ -109,14 +105,11 @@ public class DataPanel : MonoBehaviour
                         DataContainers[i].GetComponent<Button>().onClick.AddListener(delegate { DataContainerClicked(6); });
                 }
             }
-
         }
     }
 
     private void DataContainerClicked(int i)
     {
-        Debug.Log(this);
-        Debug.Log(this.gameObject);
         LoadObject((string)DataContainers[i].Resource.ID);
     }
     private void NextClick()
@@ -144,31 +137,6 @@ public class DataPanel : MonoBehaviour
             GhostObject.AddComponent<Rigidbody>();
             GhostObject.AddComponent<XREditInteractable>();
             GhostObject.transform.position = this.transform.position;
-            // Instantiate(GameObject);
-            // GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
-
-            // BoxCollider _collider = GhostObject.AddComponent<BoxCollider>();
-            // _collider.size = shapeObj.AlignedDimensions / 100;
-            //     //_collider.center = Vector3.up * _collider.size.y / 2;
-
-            //     LineRenderer lines = GhostObject.AddComponent<LineRenderer>();
-            // lines.enabled = false;
-
-            // GhostObject.transform.position = entity.Position.Vector;
-            // GhostObject.transform.rotation = entity.Rotation.Quaternion;
-            // GhostObject.transform.localScale = entity.Scale.Vector;
-            // entity.Object3D = GhostObject;
-            // _loading_obj = false;
-            //Builder.SceneBuilderControl.LoadedModels.Add((string)ShapeNetObject.ID, new GameObject[2]);
-            //Builder.SceneBuilderControl.LoadedModels[(string)ShapeNetObject.ID][0] = GhostObject;
-            //Builder.SceneBuilderControl.LoadedModels[(string)ShapeNetObject.ID][1] = Instantiate(GhostObject);
-            //Builder.SceneBuilderControl.LoadedModels[(string)ShapeNetObject.ID][1].SetActive(false);
-            //MakeGhostObject(GhostObject);
-            //GhostObject.SetActive(ghostActive);
-            //_collider.enabled = false;
-            //OnModelLoaded();
-            //_objectInstance = Instantiate(Instantiate(GhostObject));
-            //_objectInstance.SetActive(true);
         }));
     }
 }

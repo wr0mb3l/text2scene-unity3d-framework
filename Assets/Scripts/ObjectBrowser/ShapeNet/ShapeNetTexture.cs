@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using LitJson;
-using System.Threading;
 
 public class ShapeNetTexture : ShapeNetObject
 {
@@ -37,7 +36,6 @@ public class ShapeNetTexture : ShapeNetObject
             _requested = true;
             ShapeNetInterface.RequestTexture((string)ID, null);
         }
-            
 
         while (!shapeNetInterface.CachedTexturePathMap.ContainsKey((string)ID))
             yield return null;

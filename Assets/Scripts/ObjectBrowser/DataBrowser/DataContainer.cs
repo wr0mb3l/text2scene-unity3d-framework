@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Reflection;
 
 public class DataContainer : MonoBehaviour
 {
@@ -51,14 +47,5 @@ public class DataContainer : MonoBehaviour
         {
             Browser = GameObject.Find("DataBrowser").GetComponent<DataBrowser>();
         }
-        // //Check if the GameObject is being highlighted
-        // if (IsHighlighted() == true)
-        // {
-        //     Outline.material = Browser.GoetheOn;
-        // } else {
-        //     Outline.material = Browser.GoetheOff;
-        // }
-        // typeof(Button).GetMethod("GetPrivateResult", BindingFlags.NonPublic | BindingFlags.Instance)
-        //             .Invoke(button, new object[0]);
     }
 }

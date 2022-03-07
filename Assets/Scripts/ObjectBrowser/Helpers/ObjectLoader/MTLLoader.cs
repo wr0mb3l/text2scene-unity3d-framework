@@ -309,6 +309,5 @@ public class MTLLoader
         {
             return Load(fs); //actually load
         }
-
     }
 }

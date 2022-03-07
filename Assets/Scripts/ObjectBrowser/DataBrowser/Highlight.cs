@@ -1,6 +1,3 @@
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-
 namespace UnityEngine.UI
 {
     [AddComponentMenu("UI/Button", 30)]

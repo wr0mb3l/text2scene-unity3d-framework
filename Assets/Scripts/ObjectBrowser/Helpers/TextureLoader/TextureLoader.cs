@@ -1,15 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 public class TextureLoader : MonoBehaviour
 {
-
     public static Material LoadMaterialFile(string path, Dictionary<string, string> files)
     {
         //https://docs.unity3d.com/Manual/MaterialsAccessingViaScript.html
-
 
         Material m;
         if (files.ContainsKey("specularity")) //contrary to metallic (e.g. for skin)
@@ -34,7 +31,6 @@ public class TextureLoader : MonoBehaviour
             }
             m.mainTexture = mainT;
         }
-
 
         if (files.ContainsKey("normal"))
         {
@@ -75,7 +71,6 @@ public class TextureLoader : MonoBehaviour
 
         if (files.ContainsKey("ambientocclusion"))
         {
-            //m.EnableKeyword("");
             m.SetTexture("_OcclusionMap", LoadPNG(path + files["ambientocclusion"]));
         }
 
@@ -85,19 +80,15 @@ public class TextureLoader : MonoBehaviour
             m.SetTexture("_DetailMask", LoadPNG(path + files["ambientocclusion"]));
         }
 
-
         if (files.ContainsKey("emission"))
         {
             //Dragon Scales 001
             m.EnableKeyword("_EMISSION");
             m.SetTexture("_EmissionMap", LoadPNG(path + files["ambientocclusion"]));
-            
         }
-
 
         return m;
     }
-
 
     public static Texture2D LoadPNG(string filePath)
     {
@@ -117,7 +108,6 @@ public class TextureLoader : MonoBehaviour
         }
         return tex;
     }
-
 
     private static void TransferAlpha(Texture2D A, Texture2D B)
     {

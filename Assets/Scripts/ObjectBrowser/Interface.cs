@@ -65,5 +65,4 @@ public abstract class Interface : MonoBehaviour
     /// </summary>
     /// <returns></returns>
     protected abstract IEnumerator InitializeInternal();
-
 }

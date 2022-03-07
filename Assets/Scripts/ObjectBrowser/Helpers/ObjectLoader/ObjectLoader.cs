@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Dummiesman;
@@ -14,7 +12,6 @@ public class ObjectLoader : MonoBehaviour
         }
         else
         {
-
             if (!File.Exists(mtlpath))
             {
                 Debug.Log(mtlpath + " mtl doesn't exist.");
@@ -26,6 +23,7 @@ public class ObjectLoader : MonoBehaviour
         }
         return null;
     }
+    
     public static GameObject Reorientate_Obj(GameObject obj, Vector3 up, Vector3 front, float scale)
     {
         obj.transform.localScale = new Vector3(scale, scale, scale);
@@ -42,10 +40,8 @@ public class ObjectLoader : MonoBehaviour
         Vector3 render_position_med = -obj_renderer.bounds.center;
         obj.transform.localPosition = render_position_med;
 
-
         GameObject oriented_obj = new GameObject(obj.name+"_center");
         obj.transform.SetParent(oriented_obj.transform,false);
         return oriented_obj;
- 
     }
 }

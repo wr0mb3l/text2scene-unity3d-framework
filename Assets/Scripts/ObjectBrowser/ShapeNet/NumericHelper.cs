@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// This class provides functions for numbers and parsing

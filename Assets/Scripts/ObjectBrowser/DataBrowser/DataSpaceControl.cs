@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 public class DataSpaceControl : MonoBehaviour
 {
-
     private Text SiteIndicator;
 
     private List<Interface> Interfaces;
@@ -62,8 +61,7 @@ public class DataSpaceControl : MonoBehaviour
         NextSite.onClick.AddListener(NextClick);
 
         Interfaces = new List<Interface>();
-        // foreach (Interface iFace in SceneController.Interfaces)
-        //     if (iFace.OnSetupBrowser != null) Interfaces.Add(iFace);
+
         Interfaces.Add(GameObject.Find("ShapeNetInterface").gameObject.GetComponent<ShapeNetInterface>());
 
         _baseInit = true;

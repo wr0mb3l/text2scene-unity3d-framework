@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System;
 using Dummiesman.Extensions;
-using System.Runtime.InteropServices;
 
 namespace Dummiesman
 {
@@ -36,7 +33,6 @@ namespace Dummiesman
                 int RLEPacketType = GetBits(rlePacket, 7, 1);
                 int RLEPixelCount = GetBits(rlePacket, 0, 7) + 1;
 
-
                 if (RLEPacketType == 0)
                 {
                     //raw packet
@@ -45,7 +41,6 @@ namespace Dummiesman
                         var color = (bitDepth == 32) ? r.ReadColor32RGBA().FlipRB() : r.ReadColor32RGB().FlipRB();
                         pulledColors[i + pulledColorCount] = color;
                     }
-
                 }
                 else
                 {
@@ -82,7 +77,6 @@ namespace Dummiesman
 
         public static Texture2D Load(Stream TGAStream)
         {
-
             using (BinaryReader r = new BinaryReader(TGAStream))
             {
                 // Skip some header info we don't care about.
@@ -120,7 +114,6 @@ namespace Dummiesman
 
                 tex.Apply();
                 return tex;
-
             }
         }
     }

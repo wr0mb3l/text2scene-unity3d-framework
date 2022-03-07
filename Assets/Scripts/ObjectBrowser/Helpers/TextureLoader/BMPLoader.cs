@@ -47,10 +47,8 @@
 *****/
 #endregion License and Information
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System;
 
 namespace B83.Image.BMP
 {
@@ -67,8 +65,8 @@ namespace B83.Image.BMP
         BI_CMYK = 0x0B,
         BI_CMYKRLE8 = 0x0C,
         BI_CMYKRLE4 = 0x0D,
-
     }
+
     public struct BMPFileHeader
     {
         public ushort magic; // "BM"
@@ -76,6 +74,7 @@ namespace B83.Image.BMP
         public uint reserved;
         public uint offset;
     }
+
     public struct BitmapInfoHeader
     {
         public uint size;
@@ -114,7 +113,6 @@ namespace B83.Image.BMP
         }
     }
 
-
     public class BMPLoader
     {
         const ushort MAGIC = 0x4D42; // "BM" little endian
@@ -126,6 +124,7 @@ namespace B83.Image.BMP
             using (var file = File.OpenRead(aFileName))
                 return LoadBMP(file);
         }
+
         public BMPImage LoadBMP(byte[] aData)
         {
             using (var stream = new MemoryStream(aData))
@@ -138,6 +137,7 @@ namespace B83.Image.BMP
                 return LoadBMP(reader);
 
         }
+
         public BMPImage LoadBMP(BinaryReader aReader)
         {
             BMPImage bmp = new BMPImage();
@@ -185,7 +185,6 @@ namespace B83.Image.BMP
             if (bmp.info.nPaletteColors > 0 || bmp.info.nBitsPerPixel <= 8)
                 bmp.palette = ReadPalette(aReader, bmp, ReadPaletteAlpha || ForceAlphaReadWhenPossible);
 
-
             aReader.BaseStream.Seek(bmp.header.offset, SeekOrigin.Begin);
             bool uncompressed = bmp.info.compressionMethod == BMPComressionMode.BI_RGB ||
                 bmp.info.compressionMethod == BMPComressionMode.BI_BITFIELDS ||
@@ -209,7 +208,6 @@ namespace B83.Image.BMP
             }
             return bmp;
         }
-
 
         private static void Read32BitImage(BinaryReader aReader, BMPImage bmp)
         {
@@ -237,7 +235,6 @@ namespace B83.Image.BMP
                 data[i] = new Color32(r, g, b, a);
             }
         }
-
 
         private static void Read24BitImage(BinaryReader aReader, BMPImage bmp)
         {
@@ -337,6 +334,7 @@ namespace B83.Image.BMP
                     aReader.ReadByte();
             }
         }
+
         private static void ReadIndexedImageRLE4(BinaryReader aReader, BMPImage bmp)
         {
             int w = Mathf.Abs(bmp.info.width);
@@ -399,6 +397,7 @@ namespace B83.Image.BMP
                 }
             }
         }
+
         private static void ReadIndexedImageRLE8(BinaryReader aReader, BMPImage bmp)
         {
             int w = Mathf.Abs(bmp.info.width);
@@ -450,6 +449,7 @@ namespace B83.Image.BMP
                 }
             }
         }
+
         private static int GetShiftCount(uint mask)
         {
             for (int i = 0; i < 32; i++)
@@ -460,6 +460,7 @@ namespace B83.Image.BMP
             }
             return -1;
         }
+
         private static uint GetMask(int bitCount)
         {
             uint mask = 0;
@@ -470,6 +471,7 @@ namespace B83.Image.BMP
             }
             return mask;
         }
+
         private static bool ReadFileHeader(BinaryReader aReader, ref BMPFileHeader aFileHeader)
         {
             aFileHeader.magic = aReader.ReadUInt16();
@@ -480,6 +482,7 @@ namespace B83.Image.BMP
             aFileHeader.offset = aReader.ReadUInt32();
             return true;
         }
+
         private static bool ReadInfoHeader(BinaryReader aReader, ref BitmapInfoHeader aHeader)
         {
             aHeader.size = aReader.ReadUInt32();
@@ -500,6 +503,7 @@ namespace B83.Image.BMP
                 aReader.ReadBytes(pad);
             return true;
         }
+
         public static List<Color32> ReadPalette(BinaryReader aReader, BMPImage aBmp, bool aReadAlpha)
         {
             uint count = aBmp.info.nPaletteColors;
@@ -518,8 +522,8 @@ namespace B83.Image.BMP
             }
             return palette;
         }
-
     }
+
     public class BitStreamReader
     {
         BinaryReader m_Reader;
@@ -530,6 +534,7 @@ namespace B83.Image.BMP
         {
             m_Reader = aReader;
         }
+
         public BitStreamReader(Stream aStream) : this(new BinaryReader(aStream)) { }
 
         public byte ReadBit()
@@ -551,6 +556,7 @@ namespace B83.Image.BMP
                 val |= ((ulong)ReadBit() << i);
             return val;
         }
+        
         public void Flush()
         {
             m_Data = 0;

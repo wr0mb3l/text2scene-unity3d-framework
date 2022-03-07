@@ -11,12 +11,12 @@ public class Data
     public object ID { get; protected set; }
 
     /// <summary>
-    /// Enum zur Einordnung des VRData Objekts.
+    /// Enum zur Einordnung des Data Objekts.
     /// </summary>
     public enum SourceType { Local, Remote }
 
     /// <summary>
-    /// Die Quellentyp, dem das VRData-Objekt zugeornet wird.
+    /// Die Quellentyp, dem das Data-Objekt zugeornet wird.
     /// </summary>
     public SourceType Source;
 

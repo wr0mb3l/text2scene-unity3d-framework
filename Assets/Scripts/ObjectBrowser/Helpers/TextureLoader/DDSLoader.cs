@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace Dummiesman
@@ -25,7 +22,6 @@ namespace Dummiesman
         {
             try
             {
-
                 //do size check
                 byte ddsSizeCheck = ddsBytes[4];
                 if (ddsSizeCheck != 124)

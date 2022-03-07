@@ -102,7 +102,6 @@ public class ShapeNetInterface : Interface
 
     public struct TextureRequest
     {
-
         public string ID { get; private set; }
         public OnObjectLoaded Event { get; private set; }
         public TextureRequest(string id, OnObjectLoaded onLoaded)
@@ -308,7 +307,6 @@ public class ShapeNetInterface : Interface
                     TextureMainCategories.Add(taxonomyName, CheckboxStatus.AllChecked);
                 }
             }
-
         }
     }
 
@@ -337,7 +335,6 @@ public class ShapeNetInterface : Interface
                     shapeNetTexture = new ShapeNetTexture(objectList[i]);
                     ShapeNetTextures.Add((string)shapeNetTexture.ID, shapeNetTexture);
                 }
-
             }
         }
     }
@@ -369,7 +366,6 @@ public class ShapeNetInterface : Interface
             _objectThumbnailError = request.error;
         else
         {
-
             // getting the timestamp of thumbnails from server
             data = JsonMapper.ToObject(request.downloadHandler.text);
             if (!data.Keys.Contains("success") || !bool.Parse(data["success"].ToString()) ||
@@ -470,7 +466,6 @@ public class ShapeNetInterface : Interface
             if (streamReader != null) streamReader.Close();
             if (fileStream != null) fileStream.Close();
         }
-
     }
 
     private void UnzipFile(string filePath, string targetDir)
@@ -517,7 +512,6 @@ public class ShapeNetInterface : Interface
             {
 
             }
-            //File.Delete(zipFile);
             onLoaded(CachedObjectPathMap[id]);
         }
     }
@@ -814,7 +808,6 @@ public class ShapeNetInterface : Interface
     {
         foreach (string category in snObj.Categories)
         {
-
             if (snObj is ShapeNetModel)
             {
                 if (!ModelSubCategories.ContainsKey(category)) continue;
