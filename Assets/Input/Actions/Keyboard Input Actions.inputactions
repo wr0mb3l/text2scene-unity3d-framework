@@ -176,7 +176,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "RotateScaleMove",
+                    "name": "Interaction Axis",
                     "type": "Value",
                     "id": "7bb7c776-e2de-43a9-b89a-a9f1b49edddc",
                     "expectedControlType": "Vector2",
@@ -305,7 +305,7 @@
                 {
                     "name": "up",
                     "id": "d793b69d-b719-40f4-9757-22e1d5fe3dd4",
-                    "path": "<Keyboard>/v",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -316,7 +316,7 @@
                 {
                     "name": "down",
                     "id": "ca07353c-7f89-4172-9df7-aa2892d1092f",
-                    "path": "<Keyboard>/b",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -327,7 +327,7 @@
                 {
                     "name": "left",
                     "id": "c3e75193-7516-4e88-b05e-cdcc8dc4e27a",
-                    "path": "",
+                    "path": "<Keyboard>/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -338,7 +338,7 @@
                 {
                     "name": "right",
                     "id": "636d6098-679b-4fcf-a665-f412351e600d",
-                    "path": "",
+                    "path": "<Keyboard>/b",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -364,51 +364,51 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateScaleMove",
+                    "action": "Interaction Axis",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "up",
                     "id": "5fd8afac-ffc9-463c-8aef-0924dc467e85",
-                    "path": "",
+                    "path": "<Keyboard>/v",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateScaleMove",
+                    "action": "Interaction Axis",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
                 {
                     "name": "down",
                     "id": "93007837-0733-4771-a3f3-dcb5b891fb95",
-                    "path": "",
+                    "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateScaleMove",
+                    "action": "Interaction Axis",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
                 {
                     "name": "left",
                     "id": "e6e8195f-1631-4369-b238-8b18b33a7dd0",
-                    "path": "<Keyboard>/x",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateScaleMove",
+                    "action": "Interaction Axis",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
                 {
                     "name": "right",
                     "id": "60c03027-d7e5-492c-9109-e67048646eaa",
-                    "path": "<Keyboard>/c",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateScaleMove",
+                    "action": "Interaction Axis",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },

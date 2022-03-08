@@ -2153,7 +2153,6 @@ GameObject:
   - component: {fileID: 5039316078547143751}
   - component: {fileID: 5039316078547143750}
   - component: {fileID: 5039316078547143749}
-  - component: {fileID: 5039316078547143748}
   m_Layer: 2
   m_Name: XRRig
   m_TagString: Untagged
@@ -2339,34 +2338,6 @@ MonoBehaviour:
   m_LocomotionProvider: {fileID: 5039316078547143751}
   m_MinHeight: 0
   m_MaxHeight: Infinity
---- !u!114 &5039316078547143748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5039316078547143738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56f7a77daaa031c408855b73701842e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_MoveScheme: 1
-  m_TurnStyle: 0
-  m_MoveForwardSource: 0
-  m_ActionAssets:
-  - {fileID: -944628639613478452, guid: 6c3ae8d98166b584ba17737a5ff888d2, type: 3}
-  m_ActionMaps: []
-  m_Actions: []
-  m_BaseControlScheme: Generic XR Controller
-  m_NoncontinuousControlScheme: Noncontinuous Move
-  m_ContinuousControlScheme: Continuous Move
-  m_ContinuousMoveProvider: {fileID: 5039316078547143751}
-  m_ContinuousTurnProvider: {fileID: 0}
-  m_SnapTurnProvider: {fileID: 5039316078547143747}
-  m_HeadForwardSource: {fileID: 5039316078353114778}
-  m_LeftHandForwardSource: {fileID: 5039316078765716135}
-  m_RightHandForwardSource: {fileID: 5039316079548808781}
 --- !u!1 &5039316078557589242
 GameObject:
   m_ObjectHideFlags: 0
@@ -5170,9 +5141,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e25579d0cc16bfb458b0f1d5276ba954, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Keyboard: 0
   m_MenuSelectAxis: {fileID: 321599711329891442, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
+  m_SelectAxisDeltaInput: 0
   m_MenuClick: {fileID: -5922735911411277305, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
   m_Interactor: {fileID: 5039316078765716130}
@@ -7144,9 +7115,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e25579d0cc16bfb458b0f1d5276ba954, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Keyboard: 0
   m_MenuSelectAxis: {fileID: -3074057739348876189, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
+  m_SelectAxisDeltaInput: 0
   m_MenuClick: {fileID: 7471931277018744899, guid: 6c3ae8d98166b584ba17737a5ff888d2,
     type: 3}
   m_Interactor: {fileID: 5039316079980610436}

@@ -142,7 +142,7 @@ public class DataPanel : MonoBehaviour
             GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
             GhostObject.transform.GetChild(0).GetChild(0).gameObject.AddComponent<MeshCollider>().convex = true;
             GhostObject.AddComponent<Rigidbody>();
-            GhostObject.AddComponent<XRGrabInteractable>();
+            GhostObject.AddComponent<XREditInteractable>();
             GhostObject.transform.position = this.transform.position;
             // Instantiate(GameObject);
             // GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);

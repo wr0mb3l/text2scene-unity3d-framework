@@ -246,19 +246,8 @@
                 },
                 {
                     "name": "",
-                    "id": "8da6ed3a-f621-49fe-8c76-1f6b7d7754d6",
-                    "path": "<XRController>{LeftHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=1)",
-                    "processors": "",
-                    "groups": "Noncontinuous Move",
-                    "action": "Teleport Mode Activate",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "b8edee81-6779-4aa8-89cd-29b149a8f55e",
-                    "path": "<XRController>{LeftHand}/primaryButton",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
@@ -368,7 +357,7 @@
                 {
                     "name": "",
                     "id": "99cb7ad1-51ec-4611-af68-92a85f2c17d6",
-                    "path": "<XRController>{LeftHand}/Primary2DAxis",
+                    "path": "",
                     "interactions": "Sector(directions=12,sweepBehavior=1),Sector(directions=2,sweepBehavior=2)",
                     "processors": "",
                     "groups": "Noncontinuous Move",

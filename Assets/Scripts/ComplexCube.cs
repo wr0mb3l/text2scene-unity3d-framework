@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-[RequireComponent(typeof(XRGrabInteractable))]
+[RequireComponent(typeof(XREditInteractable))]
 public class ComplexCube : MonoBehaviour
 {
-    XRGrabInteractable m_GrabInteractable;
+    XREditInteractable m_GrabInteractable;
     MeshRenderer m_MeshRenderer;
     
     static Color s_UnityMagenta = new Color(0.929f, 0.094f, 0.278f);
@@ -14,7 +14,7 @@ public class ComplexCube : MonoBehaviour
 
     protected void OnEnable()
     {
-        m_GrabInteractable = GetComponent<XRGrabInteractable>();
+        m_GrabInteractable = GetComponent<XREditInteractable>();
         m_MeshRenderer = GetComponent<MeshRenderer>();
         
         m_GrabInteractable.firstHoverEntered.AddListener(OnFirstHoverEntered);
