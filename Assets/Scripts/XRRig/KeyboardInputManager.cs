@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 /// <summary>
@@ -27,12 +28,13 @@ public class KeyboardInputManager : MonoBehaviour
     void Update()
     {
         // When InputFields have focus, they will occupy the EventSystem.current.currentSelectedGameObject property.
-        if (m_InputActive && EventSystem.current.currentSelectedGameObject != null)
+        var currentSelected = EventSystem.current.currentSelectedGameObject;
+        if (m_InputActive && currentSelected != null && currentSelected.GetComponent<InputField>() != null)
         {
             m_InputActionManager.DisableInput();
             m_InputActive = false;
         }
-        else if (!m_InputActive && EventSystem.current.currentSelectedGameObject == null)
+        else if (!m_InputActive && currentSelected == null)
         {
             m_InputActionManager.EnableInput();
             m_InputActive = true;

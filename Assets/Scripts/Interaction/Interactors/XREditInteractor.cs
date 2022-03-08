@@ -14,7 +14,7 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 /// that update the current set of valid targets for this interactor. Allows scaling in addition to moving and rotating.
 /// </summary>
 [DisallowMultipleComponent]
-[AddComponentMenu("XR/XR Ray Interactor")]
+[AddComponentMenu("XR/XR Edit Interactor")]
 [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 public class XREditInteractor : XRBaseControllerInteractor, ILineRenderable, IUIInteractor
 {

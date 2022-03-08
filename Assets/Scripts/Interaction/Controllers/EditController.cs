@@ -22,7 +22,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 /// input actions in an Input Action Asset are not enabled by default.
 /// </remarks>
 /// <seealso cref="XRBaseController"/>
-[AddComponentMenu("XR/XR Controller (Action-based)")]
+[AddComponentMenu("XR/XR Edit Controller")]
 [HelpURL(XRHelpURLConstants.k_ActionBasedController)]
 public class EditController : XRBaseController
 {
