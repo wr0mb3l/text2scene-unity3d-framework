@@ -43,7 +43,7 @@ public class DocumentBrowserMenu : Menu
     {
         Debug.Log("Wait for Authorization ...");
 
-        if (!textAnnotatorInterface.Authorized)
+        if (textAnnotatorInterface.Authorized == true)
             yield return StartCoroutine(textAnnotatorInterface.StartAuthorization());
 
         Debug.Log("Load Document: " + documentid);

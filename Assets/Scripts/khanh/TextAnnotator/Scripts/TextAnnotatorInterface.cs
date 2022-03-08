@@ -39,7 +39,7 @@ public class TextAnnotatorInterface : Interface
     /// <summary>
     /// Gibt an, ob das Client authorisiert wurde.
     /// </summary>
-    public bool Authorized { get; private set; }
+    public bool? Authorized { get; private set; }
 
     /// <summary>
     /// In dieser Variable werden relevanten Daten der Server-Antwort abgespeichert.
@@ -140,10 +140,9 @@ public class TextAnnotatorInterface : Interface
             Debug.Log(Response.ToJson());
             //WriteToText(Response.ToJson());
 
-            if (!Authorized && Response.Keys.Contains("cmd") && Response["cmd"].ToString().Equals("session"))
-                Authorized = true;
+            if (Authorized == null)
+                Authorized = Response.Keys.Contains("cmd") && Response["cmd"].ToString().Equals("session");
                 
-
             int id = int.Parse(Response["data"]["casId"].ToString());
             if (Response["cmd"].ToString().Equals("create_db_cas") ||
                     Response["cmd"].ToString().Equals("open_cas"))
@@ -979,14 +978,15 @@ public class TextAnnotatorInterface : Interface
     public IEnumerator AutoLogin()
     {
         yield return StartCoroutine(ResourceManager.AutoLogin());
-        if (!Authorized) yield return StartCoroutine(StartAuthorization());        
+        if (Authorized == null) yield return StartCoroutine(StartAuthorization());        
         //StolperwegeHelper.textAnnotatorClient.FireJSONCommand(CommandType.open_cas, "16503");
     }
 
     public IEnumerator LoginWithCredential(string username, string password)
     {
         yield return StartCoroutine(ResourceManager.LoginWithCredential(username, password));
-        if (!Authorized) yield return StartCoroutine(StartAuthorization());
+        Authorized = ResourceManager.SessionID != null;
+        if (Authorized == null) yield return StartCoroutine(StartAuthorization());
     }
 
     private static void DebugOnSocketTransfer(string message)
