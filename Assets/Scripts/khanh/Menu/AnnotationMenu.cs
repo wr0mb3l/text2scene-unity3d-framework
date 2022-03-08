@@ -23,13 +23,12 @@ public class AnnotationMenu : Menu
 
     public Counter PageNavigator;
     public Counter SentenceCounter;
-    public GameObject QuickTreeNodePrefab;
-    public GameObject TextButtonPrefab;
+    public GameObject TokenObjectPrefab;
+
     public List<IsoEntity> EmptyTokenObjects { get; private set; }
     public Transform EmptyTokenContainer;
     public Transform TokenContainer;
 
-    private int EmptyTokenPointer = 0;
     private List<Sentence> Sentences;
     private Type[] Isotypes;
 
@@ -56,11 +55,11 @@ public class AnnotationMenu : Menu
 
     GameObject GenerateTokenObject(AnnotationBase token, Color color, Transform container)
     {
-        GameObject QuickTreeNodeObj = Instantiate(QuickTreeNodePrefab, container) as GameObject;
-        QuickTreeNodeObj.name = token.TextContent;
-        var visualizer = QuickTreeNodeObj.GetComponent<QuickTreeNodeVisualizer>();
+        GameObject TokenObj = Instantiate(TokenObjectPrefab, container) as GameObject;
+        TokenObj.name = token.TextContent;
+        var visualizer = TokenObj.GetComponent<TokenObjectScript>();
         visualizer.Init(token, color);
-        return QuickTreeNodeObj;
+        return TokenObj;
     }
 
     void GenerateNewLine()
@@ -110,14 +109,6 @@ public class AnnotationMenu : Menu
             GenerateTokenObject(et, Color.white, EmptyTokenContainer);
         } 
         
-    }
-
-    void AddEmptyToken()
-    {
-        // AnnotationBase parent, int ID, int begin, int end, string comment, string mod, 
-        // string object_ID, IsoVector3 position, IsoVector4 rotation, IsoVector3 scale, List<IsoObjectAttribute> object_feature, string class_type
-        // var emptyToken = new 
-        UpdateEmptyTokenContainer();
     }
 
     public void RefreshLayoutGroupsImmediateAndRecursive(GameObject root)

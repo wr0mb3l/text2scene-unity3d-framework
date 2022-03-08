@@ -1328,7 +1328,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2855265662316999353}
   m_HandleRect: {fileID: 2855265662316999352}
   m_Direction: 2
-  m_Value: 1.0000153
+  m_Value: 1.0001526
   m_Size: 0.93333346
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -4578,9 +4578,7 @@ MonoBehaviour:
   Type: 2
   PageNavigator: {fileID: 7537140523517461189}
   SentenceCounter: {fileID: 7537140523832771860}
-  QuickTreeNodePrefab: {fileID: 7525355813320839474, guid: a0877b3d4c1e2e54aa1bf92155e7c074,
-    type: 3}
-  TextButtonPrefab: {fileID: 3299761790686325912, guid: 39c26c8398f41fb47a378ce58402ad58,
+  TokenObjectPrefab: {fileID: 7525355813320839474, guid: a0877b3d4c1e2e54aa1bf92155e7c074,
     type: 3}
   EmptyTokenContainer: {fileID: 2855265660348833693}
   TokenContainer: {fileID: 7537140522789511285}
@@ -4693,7 +4691,7 @@ GameObject:
   - component: {fileID: 7537140522812110005}
   - component: {fileID: 7537140522812110007}
   m_Layer: 5
-  m_Name: LoadMenu
+  m_Name: DocumentBrowserMenu
   m_TagString: Menu
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5219,7 +5217,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7537140521916990780}
   m_HandleRect: {fileID: 7537140521916990779}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 1.0000019
   m_Size: 0.46666667
   m_NumberOfSteps: 0
   m_OnValueChanged:
