@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Linq;
 
-public class LoadMenu : Menu
+public class DocumentBrowserMenu : Menu
 {
     public Button LoadButton;
     public Button LogoutButton;
@@ -30,7 +30,7 @@ public class LoadMenu : Menu
     private void LoadButtonClicked()
     {
         if (textAnnotatorInterface.ActualDocument?.DocumentCreated == true)
-            MenuController.SwitchMenu(MenuType.AnnotationWindow);
+            MenuController.SwitchMenu(MenuType.AnnotationMenu);
         else StartCoroutine(Load_Document(currentItem.ID.ToString()));
     }
 
@@ -43,7 +43,7 @@ public class LoadMenu : Menu
     {
         Debug.Log("Wait for Authorization ...");
 
-        if (!textAnnotatorInterface.Authorized)
+        if (textAnnotatorInterface.Authorized == true)
             yield return StartCoroutine(textAnnotatorInterface.StartAuthorization());
 
         Debug.Log("Load Document: " + documentid);
