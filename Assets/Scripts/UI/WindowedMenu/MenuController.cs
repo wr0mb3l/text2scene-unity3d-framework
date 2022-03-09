@@ -12,8 +12,8 @@ using MathHelper;
 public enum MenuType
 {
     LoginMenu,
-    LoadMenu,
-    AnnotationWindow
+    DocumentBrowserMenu,
+    AnnotationMenu
 }
 
 public class MenuController : MonoBehaviour

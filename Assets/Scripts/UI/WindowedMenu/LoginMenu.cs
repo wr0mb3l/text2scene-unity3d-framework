@@ -26,9 +26,11 @@ public class LoginMenu : Menu
     {
         var textAnnotatorInterface = MenuController.GetTextAnnotatorInterface();
         StartCoroutine(textAnnotatorInterface.LoginWithCredential(username, password));
-        yield return new WaitUntil(() => textAnnotatorInterface.Authorized);
-        MenuController.SwitchMenu(MenuType.LoadMenu);
-
+        yield return new WaitUntil(() => textAnnotatorInterface.Authorized != null);
+        if (textAnnotatorInterface.Authorized == true)
+            MenuController.SwitchMenu(MenuType.DocumentBrowserMenu);
+        else
+            ErrorText.text = textAnnotatorInterface.ResourceManager.LoginMessage;
     }
 
     private void OnEnable()
