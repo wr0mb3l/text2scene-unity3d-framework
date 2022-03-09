@@ -3,9 +3,10 @@ using UnityEngine;
 
 public class DataBrowser : MonoBehaviour
 {
-    public ShapeNetInterface shapeNetInterface;
     public Material GoetheOn;
     public Material GoetheOff;
+
+    public enum CheckboxStatus { AllChecked, NoneChecked, PartsChecked };
 
     public DataBrowserFilterController FilterPanel { get; private set; }
     public DataSpaceControl SpaceControl { get; private set; }

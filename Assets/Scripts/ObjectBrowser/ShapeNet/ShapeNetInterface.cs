@@ -12,7 +12,6 @@ using LitJson;
 public class ShapeNetInterface : Interface
 {
     public static string UserFolder { get { return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile); } }
-    public enum CheckboxStatus { AllChecked, NoneChecked, PartsChecked };
 
     public const string WS = "http://shapenet.texttechnologylab.org/";
     private const string CACHE_DIR = "\\Documents\\text2scene\\";
@@ -43,8 +42,8 @@ public class ShapeNetInterface : Interface
     public Dictionary<string, ShapeNetModel> ShapeNetModels;
     public Dictionary<string, ShapeNetTaxonomyEntry> ModelTaxonomies;
     public Dictionary<string, string> ObjectSubCategoryMap;
-    public Dictionary<string, CheckboxStatus> ModelMainCategories;
-    public Dictionary<string, CheckboxStatus> ModelSubCategories;
+    public Dictionary<string, DataBrowser.CheckboxStatus> ModelMainCategories;
+    public Dictionary<string, DataBrowser.CheckboxStatus> ModelSubCategories;
     public Dictionary<string, string> CachedObjectPathMap { get; private set; }
 
     // Textures
@@ -64,8 +63,8 @@ public class ShapeNetInterface : Interface
     public Dictionary<string, ShapeNetTexture> ShapeNetTextures;
     public Dictionary<string, ShapeNetTaxonomyEntry> TextureTaxonomies;
     public Dictionary<string, string> TextureSubCategoryMap;
-    public Dictionary<string, CheckboxStatus> TextureMainCategories;
-    public Dictionary<string, CheckboxStatus> TextureSubCategories;
+    public Dictionary<string, DataBrowser.CheckboxStatus> TextureMainCategories;
+    public Dictionary<string, DataBrowser.CheckboxStatus> TextureSubCategories;
 
     public Dictionary<string, string> CachedTexturePathMap { get; private set; }
 
@@ -114,6 +113,11 @@ public class ShapeNetInterface : Interface
     public delegate void OnThumbnailLoaded();
     public delegate void OnObjectLoaded(string filePath);
 
+    void Awake()
+    {
+        Name = "ShapeNet";
+    }
+
     IEnumerator Start()
     {
         Name = "ShapeNet";
@@ -122,8 +126,8 @@ public class ShapeNetInterface : Interface
 
         ShapeNetModels = new Dictionary<string, ShapeNetModel>();
         ModelTaxonomies = new Dictionary<string, ShapeNetTaxonomyEntry>();
-        ModelMainCategories = new Dictionary<string, CheckboxStatus>();
-        ModelSubCategories = new Dictionary<string, CheckboxStatus>();
+        ModelMainCategories = new Dictionary<string, DataBrowser.CheckboxStatus>();
+        ModelSubCategories = new Dictionary<string, DataBrowser.CheckboxStatus>();
         ObjectSubCategoryMap = new Dictionary<string, string>();
         _objectListLoaded = false;
         _objectTaxonomyLoaded = false;
@@ -134,8 +138,8 @@ public class ShapeNetInterface : Interface
 
         ShapeNetTextures = new Dictionary<string, ShapeNetTexture>();
         TextureTaxonomies = new Dictionary<string, ShapeNetTaxonomyEntry>();
-        TextureMainCategories = new Dictionary<string, CheckboxStatus>();
-        TextureSubCategories = new Dictionary<string, CheckboxStatus>();
+        TextureMainCategories = new Dictionary<string, DataBrowser.CheckboxStatus>();
+        TextureSubCategories = new Dictionary<string, DataBrowser.CheckboxStatus>();
         TextureSubCategoryMap = new Dictionary<string, string>();
         _textureListLoaded = false;
         _textureListError = null;
@@ -274,7 +278,7 @@ public class ShapeNetInterface : Interface
                 if (!ModelMainCategories.ContainsKey(taxonomyName))
                 {
                     ModelTaxonomies.Add(taxonomyName, new ShapeNetTaxonomyEntry(taxonomyName, ShapeNetTaxonomyEntry.TaxonomyType.Object, taxonomyObject[taxonomyName], this));
-                    ModelMainCategories.Add(taxonomyName, CheckboxStatus.AllChecked);
+                    ModelMainCategories.Add(taxonomyName, DataBrowser.CheckboxStatus.AllChecked);
                 }
             }
         }
@@ -304,7 +308,7 @@ public class ShapeNetInterface : Interface
                 if (!TextureMainCategories.ContainsKey(taxonomyName))
                 {
                     TextureTaxonomies.Add(taxonomyName, new ShapeNetTaxonomyEntry(taxonomyName, ShapeNetTaxonomyEntry.TaxonomyType.Texture, taxonomyObject[taxonomyName], this));
-                    TextureMainCategories.Add(taxonomyName, CheckboxStatus.AllChecked);
+                    TextureMainCategories.Add(taxonomyName, DataBrowser.CheckboxStatus.AllChecked);
                 }
             }
         }
@@ -555,7 +559,7 @@ public class ShapeNetInterface : Interface
             {
                 browser.FilterPanel.ShowingSubTypes = true;
                 ResourceData actualSpace = (ResourceData)browser.LastBrowserStateMap[Name];
-                Dictionary<string, CheckboxStatus> filters = new Dictionary<string, CheckboxStatus>();
+                Dictionary<string, DataBrowser.CheckboxStatus> filters = new Dictionary<string, DataBrowser.CheckboxStatus>();
                 if (actualSpace.Name.Equals(FORMATTED_MODEL_NAME))
                 {
                     foreach (string subCategorie in ModelTaxonomies[(string)cb.transform.parent.GetComponent<DataFilter>().ButtonValue].SubCategories)
@@ -581,7 +585,7 @@ public class ShapeNetInterface : Interface
         browser.FilterPanel.CheckboxUpdater = (type, status) =>
         {
             ResourceData actualSpace = (ResourceData)browser.LastBrowserStateMap[Name];
-            string _mainCat; int checkedSubCategories; CheckboxStatus _mainCatStatus;
+            string _mainCat; int checkedSubCategories; DataBrowser.CheckboxStatus _mainCatStatus;
             if (browser.FilterPanel.ShowingSubTypes)
             {
                 if (actualSpace.Name.Equals(FORMATTED_MODEL_NAME))
@@ -590,11 +594,11 @@ public class ShapeNetInterface : Interface
                     _mainCat = ObjectSubCategoryMap[type];
                     checkedSubCategories = 0;
                     foreach (string subCat in ModelTaxonomies[_mainCat].SubCategories)
-                        if (ModelSubCategories[subCat] == CheckboxStatus.AllChecked)
+                        if (ModelSubCategories[subCat] == DataBrowser.CheckboxStatus.AllChecked)
                             checkedSubCategories += 1;
-                    _mainCatStatus = (checkedSubCategories == 0) ? CheckboxStatus.NoneChecked :
+                    _mainCatStatus = (checkedSubCategories == 0) ? DataBrowser.CheckboxStatus.NoneChecked :
                                      (checkedSubCategories == ModelTaxonomies[_mainCat].SubCategories.Count) ?
-                                     CheckboxStatus.AllChecked : CheckboxStatus.PartsChecked;
+                                     DataBrowser.CheckboxStatus.AllChecked : DataBrowser.CheckboxStatus.PartsChecked;
                     ModelMainCategories[_mainCat] = _mainCatStatus;
                 }
                 else
@@ -603,11 +607,11 @@ public class ShapeNetInterface : Interface
                     _mainCat = TextureSubCategoryMap[type];
                     checkedSubCategories = 0;
                     foreach (string subCat in TextureTaxonomies[_mainCat].SubCategories)
-                        if (TextureSubCategories[subCat] == CheckboxStatus.AllChecked)
+                        if (TextureSubCategories[subCat] == DataBrowser.CheckboxStatus.AllChecked)
                             checkedSubCategories += 1;
-                    _mainCatStatus = (checkedSubCategories == 0) ? CheckboxStatus.NoneChecked :
+                    _mainCatStatus = (checkedSubCategories == 0) ? DataBrowser.CheckboxStatus.NoneChecked :
                                      (checkedSubCategories == TextureTaxonomies[_mainCat].SubCategories.Count) ?
-                                     CheckboxStatus.AllChecked : CheckboxStatus.PartsChecked;
+                                     DataBrowser.CheckboxStatus.AllChecked : DataBrowser.CheckboxStatus.PartsChecked;
                     TextureMainCategories[_mainCat] = _mainCatStatus;
                 }
             }
@@ -663,6 +667,23 @@ public class ShapeNetInterface : Interface
 
             browser.DataPanel.ParentDir.interactable = true;
             browser.DataPanel.Root.gameObject.SetActive(false);
+        };
+
+        browser.DataPanel.LoadObject = (string ID) =>
+        {
+            Debug.Log("Load Object: " + ID);
+            ShapeNetModel shapeObj = ShapeNetModels[ID];
+
+            StartCoroutine(GetModel((string)shapeObj.ID, (path) =>
+            {
+                Debug.Log("Scale & Reorientate Obj");
+                GameObject GameObject = ObjectLoader.LoadObject(path + "\\" + shapeObj.ID + ".obj", path + "\\" + shapeObj.ID + ".mtl");
+                GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
+                GhostObject.transform.GetChild(0).GetChild(0).gameObject.AddComponent<MeshCollider>().convex = true;
+                GhostObject.AddComponent<Rigidbody>();
+                GhostObject.AddComponent<XREditInteractable>();
+                GhostObject.transform.position = this.transform.position;
+            }));
         };
         // ============================= LOADING LAST STATE ============================ 
 
@@ -811,13 +832,13 @@ public class ShapeNetInterface : Interface
             if (snObj is ShapeNetModel)
             {
                 if (!ModelSubCategories.ContainsKey(category)) continue;
-                if (ModelSubCategories[category] == CheckboxStatus.AllChecked)
+                if (ModelSubCategories[category] == DataBrowser.CheckboxStatus.AllChecked)
                     return true;
             }
             if (snObj is ShapeNetTexture)
             {
                 if (!TextureSubCategories.ContainsKey(category)) continue;
-                if (TextureSubCategories[category] == CheckboxStatus.AllChecked)
+                if (TextureSubCategories[category] == DataBrowser.CheckboxStatus.AllChecked)
                     return true;
             }
         }

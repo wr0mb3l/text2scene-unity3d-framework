@@ -14,16 +14,16 @@ public class DataFilter : MonoBehaviour
         }
     }
 
-    private ShapeNetInterface.CheckboxStatus _status;
-    public ShapeNetInterface.CheckboxStatus Status
+    private DataBrowser.CheckboxStatus _status;
+    public DataBrowser.CheckboxStatus Status
     {
         get { return _status; }
         set
         {
             _status = value;
-            if (_status == ShapeNetInterface.CheckboxStatus.AllChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Checked;
-            if (_status == ShapeNetInterface.CheckboxStatus.NoneChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Unchecked;
-            if (_status == ShapeNetInterface.CheckboxStatus.PartsChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Mixed;
+            if (_status == DataBrowser.CheckboxStatus.AllChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Checked;
+            if (_status == DataBrowser.CheckboxStatus.NoneChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Unchecked;
+            if (_status == DataBrowser.CheckboxStatus.PartsChecked) transform.Find("Checkbox").GetComponent<Image>().sprite = FindObjectOfType<DataBrowserFilterController>().Mixed;
         }
     }
 }

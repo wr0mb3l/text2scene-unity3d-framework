@@ -121,22 +121,9 @@ public class DataPanel : MonoBehaviour
         ContainerPointer -= DataContainers.Length;
     }
 
-    public void LoadObject(string ID)
-    {
-        Debug.Log("Load Object: " + ID);
-        ShapeNetInterface inter = GameObject.Find("ShapeNetInterface").gameObject.GetComponent<ShapeNetInterface>();
-
-        ShapeNetModel shapeObj = inter.ShapeNetModels[ID];
-
-        StartCoroutine(inter.GetModel((string)shapeObj.ID, (path) =>
-        {
-            Debug.Log("Scale & Reorientate Obj");
-            GameObject GameObject = ObjectLoader.LoadObject(path + "\\" + shapeObj.ID + ".obj", path + "\\" + shapeObj.ID + ".mtl");
-            GameObject GhostObject = ObjectLoader.Reorientate_Obj(GameObject, shapeObj.Up, shapeObj.Front, shapeObj.Unit);
-            GhostObject.transform.GetChild(0).GetChild(0).gameObject.AddComponent<MeshCollider>().convex = true;
-            GhostObject.AddComponent<Rigidbody>();
-            GhostObject.AddComponent<XREditInteractable>();
-            GhostObject.transform.position = this.transform.position;
-        }));
-    }
+    public delegate void LoadObjectMethod(string ID);
+    /// <summary>
+    /// A delegate function that can be setted, to define what should happen if a DataContainer is clicked.
+    /// </summary>
+    public LoadObjectMethod LoadObject;
 }

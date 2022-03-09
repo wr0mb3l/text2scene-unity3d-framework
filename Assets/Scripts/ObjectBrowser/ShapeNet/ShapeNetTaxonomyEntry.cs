@@ -37,7 +37,7 @@ public class ShapeNetTaxonomyEntry
                         {
                             if (!shapeNetInterface.ModelSubCategories.ContainsKey(_name))
                             {
-                                shapeNetInterface.ModelSubCategories.Add(_name, ShapeNetInterface.CheckboxStatus.AllChecked);
+                                shapeNetInterface.ModelSubCategories.Add(_name, DataBrowser.CheckboxStatus.AllChecked);
                                 shapeNetInterface.ObjectSubCategoryMap.Add(_name, Name);
                                 SubCategories.Add(_name);
                             }
@@ -46,7 +46,7 @@ public class ShapeNetTaxonomyEntry
                         {
                             if (!shapeNetInterface.TextureSubCategories.ContainsKey(_name))
                             {
-                                shapeNetInterface.TextureSubCategories.Add(_name, ShapeNetInterface.CheckboxStatus.AllChecked);
+                                shapeNetInterface.TextureSubCategories.Add(_name, DataBrowser.CheckboxStatus.AllChecked);
                                 shapeNetInterface.TextureSubCategoryMap.Add(_name, Name);
                                 SubCategories.Add(_name);
                             }
